@@ -60,18 +60,9 @@ void cst_alloc_debug_summary();
 void usenglish_init(cst_voice *v);
 cst_lexicon *cmu_lex_init(void);
 
-static void flite_version() {
-	printf("  Carnegie Mellon University, Copyright (c) 1999-2016, all rights reserved\n");
-	printf("  version: %s-%s-%s %s (http://cmuflite.org)\n",
-		   FLITE_PROJECT_PREFIX,
-		   FLITE_PROJECT_VERSION,
-		   FLITE_PROJECT_STATE,
-		   FLITE_PROJECT_DATE);
-}
-
 static void flite_usage() {
 	printf("flite: a small simple speech synthesizer\n");
-	flite_version();
+
 	printf("usage: flite TEXT/FILE [WAVEFILE]\n"
 		   "  Converts text in TEXTFILE to a waveform in WAVEFILE\n"
 		   "  If text contains a space the it is treated as a literal\n"
@@ -182,10 +173,9 @@ int main(int argc, char **argv) {
 	const char *voicedir	 = NULL;
 	int i;
 	float durs;
-	double time_start, time_end;
 
 	int explicit_filename, explicit_text, explicit_phones;
-#define ITER_MAX 3
+
 	int bench_iter = 0;
 	cst_features *extra_feats;
 	const char *lex_addenda_file = NULL;
@@ -297,19 +287,12 @@ int main(int argc, char **argv) {
 		feat_set(v->features, "streaming_info", audio_streaming_info_val(asi));
 	}
 
-loop:
-	gettimeofday(&tv, NULL);
-	time_start = (double) (tv.tv_sec) + (((double) tv.tv_usec) / 1000000.0);
-
 	if (explicit_phones) durs = flite_phones_to_speech(filename, v, outtype);
 	else if ((strchr(filename, ' ') && !explicit_filename) || explicit_text) {
 		durs = flite_text_to_speech(filename, v, outtype);
 	} else {
 		durs = flite_file_to_speech(filename, v, outtype);
 	}
-
-	gettimeofday(&tv, NULL);
-	time_end = ((double) (tv.tv_sec)) + ((double) tv.tv_usec / 1000000.0);
 
 	delete_features(extra_feats);
 	delete_val(flite_voice_list);

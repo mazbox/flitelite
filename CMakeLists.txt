@@ -20,34 +20,6 @@ set(SOURCES
 ./lang/cmu_us_slt/cmu_us_slt_cg_durmodel.c
 ./lang/cmu_us_slt/cmu_us_slt_cg_single_params.c
 ./lang/cmu_us_slt/cmu_us_slt_spamf0_phrase.c
-# ./lang/cmu_indic_lex/cmu_indic_lex.c
-./lang/cmu_us_rms/cmu_us_rms_cg_f0_trees.c
-./lang/cmu_us_rms/cmu_us_rms_cg_single_params.c
-./lang/cmu_us_rms/cmu_us_rms_spamf0_accent.c
-./lang/cmu_us_rms/cmu_us_rms_cg_single_mcep_trees.c
-./lang/cmu_us_rms/cmu_us_rms.c
-./lang/cmu_us_rms/cmu_us_rms_cg.c
-./lang/cmu_us_rms/cmu_us_rms_cg_durmodel.c
-./lang/cmu_us_rms/cmu_us_rms_spamf0_phrase.c
-./lang/cmu_us_rms/cmu_us_rms_spamf0_accent_params.c
-./lang/cmu_us_rms/cmu_us_rms_cg_phonestate.c
-./lang/cmu_us_kal/cmu_us_kal_diphone.c
-./lang/cmu_us_kal/cmu_us_kal_residx.c
-./lang/cmu_us_kal/cmu_us_kal_ressize.c
-./lang/cmu_us_kal/cmu_us_kal.c
-./lang/cmu_us_kal/cmu_us_kal_res.c
-./lang/cmu_us_kal/cmu_us_kal_lpc.c
-./lang/cmu_time_awb/cmu_time_awb.c
-./lang/cmu_time_awb/cmu_time_awb_cart.c
-./lang/cmu_time_awb/cmu_time_awb_lex_entry.c
-./lang/cmu_time_awb/cmu_time_awb_lpc.c
-./lang/cmu_time_awb/cmu_time_awb_mcep.c
-./lang/cmu_time_awb/cmu_time_awb_clunits.c
-./lang/cmu_us_kal16/cmu_us_kal16_lpc.c
-./lang/cmu_us_kal16/cmu_us_kal16_residx.c
-./lang/cmu_us_kal16/cmu_us_kal16.c
-./lang/cmu_us_kal16/cmu_us_kal16_res.c
-./lang/cmu_us_kal16/cmu_us_kal16_diphone.c
 ./lang/cmulex/cmu_lex_entries.c
 ./lang/cmulex/cmu_lex.c
 ./lang/cmulex/cmu_postlex.c
@@ -72,9 +44,6 @@ set(SOURCES
 ./lang/usenglish/us_expand.c
 ./lang/cmu_grapheme_lex/cmu_grapheme_lex.c
 ./lang/cmu_grapheme_lex/grapheme_unitran_tables.c
-# ./lang/cmu_indic_lang/cmu_indic_lang.c
-# ./lang/cmu_indic_lang/cmu_indic_phrasing_cart.c
-# ./lang/cmu_indic_lang/cmu_indic_phoneset.c
 ./main/flite_main.c
 ./main/flite_lang_list.c
 ./main/flite_voice_list.c
