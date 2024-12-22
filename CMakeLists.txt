@@ -1,9 +1,14 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.25)
 
 # Set the project name
-project(Flite C)
+project(Flite)
+
+set(CMAKE_CXX_STANDARD 20)
+
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include_directories(include lang/usenglish lang/cmulex)
+
 
 set(SOURCES
 ./lang/cmu_grapheme_lang/cmu_grapheme_lang.c
@@ -116,6 +121,9 @@ set(SOURCES
 ./src/stats/cst_ss.c
 
 )
+
+# add sources as source group
+#source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})
 
 # Add the executable
 add_executable(Flite ${SOURCES})

@@ -54,7 +54,7 @@
 #include "cst_hrg.h"
 #include "cst_utt_utils.h"
 #include "cst_audio.h"
-
+#include "flite_lite_config.h"
 CST_VAL_REGISTER_TYPE(cg_db,cst_cg_db)
 
 static cst_utterance *cg_make_hmmstates(cst_utterance *utt);
@@ -171,8 +171,9 @@ cst_utterance *cg_synth(cst_utterance *utt)
     {
 	cst_spamf0(utt);
     }
+#ifndef FLITE_LITE_PREPARE
     cg_resynth(utt);
-
+#endif
     return utt;
 }
 
