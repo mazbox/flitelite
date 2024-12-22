@@ -186,6 +186,62 @@ static cst_wave *synthesis_body(const cst_track *params, /* f0 + mcep */
 		return wave;
 }
 
+
+
+cst_wave *synthesis_body_marek(const cst_track *params, /* f0 + mcep */
+								const cst_track *str,
+								double fs,	/* sampling frequency (Hz) */
+								double framem,	/* frame size */
+								cst_cg_db *cg_db,
+								cst_audio_streaming_info *asi,
+								int mlsa_speed_param)
+{
+	
+	int framel, i;
+	double f0;
+	VocoderSetup vs;
+	cst_wave *wave = 0;
+	double *mcep;
+	int num_mcep;
+	
+	num_mcep = params->num_channels-1;
+	if ((num_mcep > mlsa_speed_param) &&
+		((num_mcep - mlsa_speed_param) > 4))
+	/* Basically ignore some of the higher coeffs */
+	/* It'll sound worse, but it will be faster */
+		num_mcep -= mlsa_speed_param;
+	framel = (int)(0.5 + (framem * fs / 1000.0)); /* 80 for 16KHz */
+	init_vocoder(fs, framel, num_mcep, &vs, cg_db);
+	
+	vs.gauss = MFALSE;
+	
+	/* synthesize waveforms by MLSA filter */
+	wave = new_wave();
+	cst_wave_resize(wave,params->num_frames * framel,1);
+	wave->sample_rate = fs;
+	
+	mcep = cst_alloc(double,num_mcep+1);
+	long pos = 0;
+	for (int t = 0; t < params->num_frames; t++) {
+		
+		f0 = (double)params->frames[t][0];
+		for (i=1; i<num_mcep+1; i++)
+			mcep[i-1] = params->frames[t][i];
+		mcep[i-1] = 0;
+		
+		vocoder(f0, mcep, str->frames[t], num_mcep, cg_db, &vs, wave, &pos);
+	}
+	wave->num_samples = pos;
+	
+	cst_free(mcep);
+	free_vocoder(&vs);
+	
+	return wave;
+}
+
+
+
+
 static void init_vocoder(double fs, int framel, int m,
 						 VocoderSetup *vs, cst_cg_db *cg_db)
 {

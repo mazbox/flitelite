@@ -159,6 +159,7 @@ cst_utterance *apply_synth_method(cst_utterance *u,
 {
     while (meth->hookname)
     {
+		printf("> %s %x\n", meth->hookname, meth->defhook);
 	if ((u = apply_synth_module(u, meth)) == NULL)
 	    return NULL;
 	++meth;

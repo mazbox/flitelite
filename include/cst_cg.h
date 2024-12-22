@@ -168,4 +168,21 @@ cst_voice *cst_cg_load_voice(const char *voxdir,
                              const cst_lang lang_table[]);
 int cst_cg_dump_voice(const cst_voice *v,const cst_string *filename);
 
+
+
+typedef struct StreamingSynthContext {
+cst_cg_db *cg_db;
+cst_track *str_track;
+cst_track *smoothed_track;
+} StreamingSynthContext;
+
+StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt);
+
+
+void disposeStreamingSynthContext( StreamingSynthContext *ctx);
+
+
+void doSynthesis(cst_utterance *utt,  StreamingSynthContext *ctx) ;
+	
+	
 #endif

@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-include_directories(include lang/usenglish lang/cmulex)
+include_directories(include lang/usenglish lang/cmulex main)
 
 
 set(SOURCES
@@ -49,9 +49,10 @@ set(SOURCES
 ./lang/usenglish/us_expand.c
 ./lang/cmu_grapheme_lex/cmu_grapheme_lex.c
 ./lang/cmu_grapheme_lex/grapheme_unitran_tables.c
-./main/flite_main.c
+./main/flite_main.cpp
 ./main/flite_lang_list.c
 ./main/flite_voice_list.c
+./main/flite_lite_config.h
 ./src/hrg/cst_item.c
 ./src/hrg/cst_rel_io.c
 ./src/hrg/cst_ffeature.c
@@ -121,6 +122,8 @@ set(SOURCES
 ./src/stats/cst_ss.c
 
 )
+file(GLOB_RECURSE HEADER_FILES include/*.h)
+source_group(include FILES ${HEADER_FILES})
 
 # add sources as source group
 #source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})

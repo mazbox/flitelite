@@ -171,7 +171,7 @@ cst_utterance *cg_synth(cst_utterance *utt)
     {
 	cst_spamf0(utt);
     }
-#ifndef FLITE_LITE_PREPARE
+#ifndef FLITE_LITE_PREPARE_ONLY
     cg_resynth(utt);
 #endif
     return utt;
@@ -717,67 +717,114 @@ static cst_utterance *cg_predict_params(cst_utterance *utt)
 
 static cst_utterance *cg_resynth(cst_utterance *utt)
 {
-    cst_cg_db *cg_db;
-    cst_wave *w;
-    cst_track *param_track;
-    cst_track *str_track = NULL;
-    cst_track *smoothed_track;
-    const cst_val *streaming_info_val;
-    cst_audio_streaming_info *asi = NULL;
-    int mlsa_speed_param = 0;
+	cst_cg_db *cg_db;
+	cst_wave *w;
+	cst_track *param_track;
+	cst_track *str_track = NULL;
+	cst_track *smoothed_track;
+	const cst_val *streaming_info_val;
+	cst_audio_streaming_info *asi = NULL;
+	int mlsa_speed_param = 0;
 
-    streaming_info_val=get_param_val(utt->features,"streaming_info",NULL);
-    if (streaming_info_val)
-    {
-        asi = val_audio_streaming_info(streaming_info_val);
-        asi->utt = utt;
-    }
-    /* Values 5-15 might be reasonably to speed things up.  This number */
-    /* is used to reduce the number of parameters used in the mceps      */
-    /* e.g. value 10 will speed up from 21.0 faster than real time       */
-    /* to 26.4 times faster than real time (for builtin rms) */
-    mlsa_speed_param = get_param_int(utt->features,"mlsa_speed_param",0);
+	streaming_info_val=get_param_val(utt->features,"streaming_info",NULL);
+	if (streaming_info_val)
+	{
+		asi = val_audio_streaming_info(streaming_info_val);
+		asi->utt = utt;
+	}
+	/* Values 5-15 might be reasonably to speed things up.  This number */
+	/* is used to reduce the number of parameters used in the mceps      */
+	/* e.g. value 10 will speed up from 21.0 faster than real time       */
+	/* to 26.4 times faster than real time (for builtin rms) */
+	mlsa_speed_param = get_param_int(utt->features,"mlsa_speed_param",0);
 
-    cg_db = val_cg_db(utt_feat_val(utt,"cg_db"));
-    param_track = val_track(utt_feat_val(utt,"param_track"));
-    /* awb_debug */
-    /* cst_track_save_est(param_track, "flite_pre_mlpg.track"); */
-    if (cg_db->mixed_excitation)
-        str_track = val_track(utt_feat_val(utt,"str_track"));
+	cg_db = val_cg_db(utt_feat_val(utt,"cg_db"));
+	param_track = val_track(utt_feat_val(utt,"param_track"));
+	/* awb_debug */
+	/* cst_track_save_est(param_track, "flite_pre_mlpg.track"); */
+	if (cg_db->mixed_excitation)
+		str_track = val_track(utt_feat_val(utt,"str_track"));
 
-    if (cg_db->do_mlpg)
-    {
-        smoothed_track = mlpg(param_track, cg_db);
-        /* cst_track_save_est(smoothed_track, "flite_post_mlpg.track"); */
-        w = mlsa_resynthesis(smoothed_track,str_track,cg_db,
-                             asi,mlsa_speed_param);
-        delete_track(smoothed_track);
-    }
-    else
-        w=mlsa_resynthesis(param_track,str_track,cg_db,
-                           asi,mlsa_speed_param);
+	if (cg_db->do_mlpg)
+	{
+		smoothed_track = mlpg(param_track, cg_db);
+		w = mlsa_resynthesis(smoothed_track,str_track,cg_db,
+							 asi,mlsa_speed_param);
+		delete_track(smoothed_track);
+	}
+	else
+		w=mlsa_resynthesis(param_track,str_track,cg_db,
+						   asi,mlsa_speed_param);
 
-    if (w == NULL)
-    {
-        /* Synthesis Failed, probably because it was interrupted */
-        utt_set_feat_int(utt,"Interrupted",1);
-        w = new_wave();
-    }
+	if (w == NULL)
+	{
+		/* Synthesis Failed, probably because it was interrupted */
+		utt_set_feat_int(utt,"Interrupted",1);
+		w = new_wave();
+	}
 
 #if 0
-    /* Apply local gain */
-    for (i=0,tok=utt_rel_head(utt,"Token"); tok; i++,tok=item_next(tok))
-    {
-        if (item_feat_present(tok,"local_gain"))
-            local_gain = item_feat_float(tokget_param_fffeature_float(tok,"R:mcep_link.parent.R:segstate.parent.R:SylStructure.parent.parent.R:Token.parent.local_gain");
+	/* Apply local gain */
+	for (i=0,tok=utt_rel_head(utt,"Token"); tok; i++,tok=item_next(tok))
+	{
+		if (item_feat_present(tok,"local_gain"))
+			local_gain = item_feat_float(tokget_param_fffeature_float(tok,"R:mcep_link.parent.R:segstate.parent.R:SylStructure.parent.parent.R:Token.parent.local_gain");
 
-    }
+	}
 #endif
 
-    utt_set_wave(utt,w);
+	utt_set_wave(utt,w);
 
-    return utt;
+	return utt;
 }
+										 
+									 
+StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt) {
+  	
+	 StreamingSynthContext *ctx = malloc(sizeof(StreamingSynthContext));
+    
+   ctx->cg_db = val_cg_db(utt_feat_val(utt,"cg_db"));
+   
+   ctx->str_track = val_track(utt_feat_val(utt,"str_track"));
+	cst_track *param_track = val_track(utt_feat_val(utt,"param_track"));
+	ctx->smoothed_track = mlpg(param_track, ctx->cg_db);
+	return ctx;
+				
+}
+										 
+void disposeStreamingSynthContext( StreamingSynthContext *ctx) {
+	if(ctx->smoothed_track!=NULL) delete_track(ctx->smoothed_track);
+	free( ctx);
+}
+#include "cst_vc.h"
+#include "cst_mlsa.h"
 
 
+void doSynthesis(cst_utterance *utt,  StreamingSynthContext *ctx) {
+	/* Values 5-15 might be reasonably to speed things up.  This number */
+	/* is used to reduce the number of parameters used in the mceps      */
+	/* e.g. value 10 will speed up from 21.0 faster than real time       */
+	/* to 26.4 times faster than real time (for builtin rms) */
+	int mlsa_speed_param = 0;
 
+		
+	
+	/* Resynthesizes a wave from given track */
+	cst_wave *wave = 0;
+	int sr = ctx->cg_db->sample_rate;
+	double shift;
+
+	if (ctx->smoothed_track->num_frames > 1)
+		shift = 1000.0*(ctx->smoothed_track->times[1]-ctx->smoothed_track->times[0]);
+	else
+		shift = 5.0;
+
+		
+	cst_wave *w = synthesis_body_marek(ctx->smoothed_track,ctx->str_track,sr,shift,ctx->cg_db,NULL,mlsa_speed_param);
+
+						
+	
+	delete_track(ctx->smoothed_track);
+				ctx->smoothed_track = NULL;
+				utt_set_wave(utt,w);
+}

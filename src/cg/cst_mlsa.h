@@ -104,8 +104,14 @@ typedef struct _VocoderSetup {
     const double * const *h;  
 
 } VocoderSetup;
+cst_wave *synthesis_body_marek(const cst_track *params,
+								const cst_track *str,
+								double fs, double framem,
+								cst_cg_db *cg_db,
+								cst_audio_streaming_info *asi,
+								int mlsa_speed_param);
 
-static void init_vocoder(double fs, int framel, int m, 
+static void init_vocoder(double fs, int framel, int m,
                          VocoderSetup *vs, cst_cg_db *cg_db);
 static void vocoder(double p, double *mc, 
                     const float *str,

@@ -44,14 +44,17 @@
 #include <unistd.h>
 
 #include "flite.h"
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
+#include "cst_cg.h"
+void *flite_set_lang_list(void);
 cst_val *flite_set_voice_list(const char *voxdir);
 
-#ifdef WASM32_WASI
-void flite_set_lang_list(void);
-#else
-void *flite_set_lang_list(void);
-#endif
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 void cst_alloc_debug_summary();
 
@@ -164,7 +167,7 @@ static void ef_set(cst_features *f, const char *fv, const char *type) {
 }
 
 int main(int argc, char **argv) {
-    printf("flite lite\n");
+	printf("flite lite\n");
 	struct timeval tv;
 	cst_voice *v;
 	const char *filename;
@@ -281,63 +284,50 @@ int main(int argc, char **argv) {
 
 	if (lex_addenda_file) flite_voice_add_lex_addenda(v, lex_addenda_file);
 
-	if (cst_streq("stream", outtype)) {
-		asi		 = new_audio_streaming_info();
-		asi->asc = audio_stream_chunk;
-		feat_set(v->features, "streaming_info", audio_streaming_info_val(asi));
-	}
-
-//	if (explicit_phones) durs = flite_phones_to_speech(filename, v, outtype);
-//	else if ((strchr(filename, ' ') && !explicit_filename) || explicit_text) {
-//		durs = flite_text_to_speech(filename, v, outtype);
-//	} else {
-//		durs = flite_file_to_speech(filename, v, outtype);
-//	}
+	
 	mareksVersion();
 	delete_features(extra_feats);
 	delete_val(flite_voice_list);
 	flite_voice_list = 0;
 
-	
-	
 	return 0;
 }
 
 void mareksVersion() {
-//	flite_text_To_speech(, , "none");
-	const char *text ="I'm a condor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
+	//	flite_text_To_speech(, , "none");
+	const char *text =
+		"I'm a condor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
 	cst_voice *voice = flite_voice_select(NULL);
-	
-	
-	
+
 	// cg_make_params in cst_cg.c can set stretch
 	// main synth is in vocoder() in cst_mlsa.c where you can mess with the pitch and the unvoiced and enable disable filter
 	// TODO:
 	// - set sample rate
 	// - move formants
 	cst_utterance *u = new_utterance();
-	utt_set_input_text(u,text);
-	
-	
-	
-//	flite_do_synth(u, voice, utt_synth);
+	utt_set_input_text(u, text);
+
+	//	flite_do_synth(u, voice, utt_synth);
 	utt_init(u, voice);
-	
-//	cst_featvalpair *fun = u->features->head;
-//	while(fun !=NULL && fun->name!=NULL && fun->val!=NULL) {
-//		printf("%s\n", fun->name);
-//		fun = fun->next;
-//	}
-	
+
+	//	cst_featvalpair *fun = u->features->head;
+	//	while(fun !=NULL && fun->name!=NULL && fun->val!=NULL) {
+	//		printf("%s\n", fun->name);
+	//		fun = fun->next;
+	//	}
+
 	// everything happens inside utt_synth
 	utt_synth(u);
-	
+
+	StreamingSynthContext *ctx = prepareForStreamingSynth(u);
+
+	doSynthesis(u, ctx);
 	// this is the output as a wave
 	cst_wave *wav = utt_wave(u);
 
 	// save it to a file
-	cst_wave_save_riff(wav,"out.wav");
+	cst_wave_save_riff(wav, "out.wav");
 
-	
+	disposeStreamingSynthContext(ctx);
 	delete_utterance(u);
 }
