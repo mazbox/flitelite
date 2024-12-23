@@ -296,7 +296,7 @@ int main(int argc, char **argv) {
 void mareksVersion() {
 	//	flite_text_To_speech(, , "none");
 	const char *text =
-		"I'm a condor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
+		"I'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
 	cst_voice *voice = flite_voice_select(NULL);
 
 	// cg_make_params in cst_cg.c can set stretch
