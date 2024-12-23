@@ -167,13 +167,19 @@ static cst_wave *synthesis_body(const cst_track *params, /* f0 + mcep */
 		return NULL;
 	} else return wave;
 }
+static double plus_or_minus_one() {
+	/* Randomly return 1 or -1 */
+	/* not sure rand() is portable */
+	if (rand() > RAND_MAX / 2.0) return 1.0;
+	else return -1.0;
+}
 void initVocoderMarek(StreamingSynthContext *ctx) {
 	double fs = ctx->cg_db->sample_rate;
 	init_vocoder(fs, ctx->frameSizeSamples, ctx->num_mcep, &ctx->vs, ctx->cg_db);
 }
+void marekVocoder(
+	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, cst_wave *wav, long *pos);
 void synthesis_body_marek(StreamingSynthContext *ctx) {
-	initVocoderMarek(ctx);
-
 	long pos = 0;
 	for (int t = 0; t < ctx->params->num_frames; t++) {
 		for (int i = 1; i < ctx->num_mcep + 1; i++)
@@ -182,11 +188,146 @@ void synthesis_body_marek(StreamingSynthContext *ctx) {
 
 		double f0 = (double) ctx->params->frames[t][0];
 
-		vocoder(f0, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, ctx->wave, &pos);
+		marekVocoder(
+			f0, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, ctx->wave, &pos);
 	}
 	ctx->wave->num_samples = pos;
+}
 
-	free_vocoder(&ctx->vs);
+void marekVocoder(
+	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, cst_wave *wav, long *pos) {
+	//	p *= 0.5;
+
+	double inc, x, e1, e2;
+	int i, j, k;
+	double xpulse, xnoise;
+	double fxpulse, fxnoise;
+	float gain = 1.0;
+
+	if (cg_db->gain != 0.0) gain = cg_db->gain;
+
+	if (str != NULL) { // MIXED-EXCITATION
+
+		// Copy in str's and build hpulse and hnoise for this frame
+		for (i = 0; i < vs->ME_order; i++) {
+			vs->hpulse[i] = vs->hnoise[i] = 0.0;
+			for (j = 0; j < vs->ME_num; j++) {
+				vs->hpulse[i] += str[j] * vs->h[j][i];
+				vs->hnoise[i] += (1 - str[j]) * vs->h[j][i];
+			}
+		}
+	}
+	if (p != 0.0) p = vs->rate / p; // f0 -> pitch
+
+	if (vs->p1 < 0) {
+		if (vs->gauss & (vs->seed != 1)) vs->next = srnd((unsigned) vs->seed);
+
+		vs->p1	 = p;
+		vs->pc	 = vs->p1;
+		vs->cc	 = vs->c + m + 1;
+		vs->cinc = vs->cc + m + 1;
+		vs->d1	 = vs->cinc + m + 1;
+
+		mc2b(mc, vs->c, m, cg_db->mlsa_alpha);
+
+		if (cg_db->mlsa_beta > 0.0 && m > 1) {
+			e1 = b2en(vs->c, m, cg_db->mlsa_alpha, vs);
+			vs->c[1] -= cg_db->mlsa_beta * cg_db->mlsa_alpha * mc[2];
+			for (k = 2; k <= m; k++)
+				vs->c[k] *= (1.0 + cg_db->mlsa_beta);
+			e2 = b2en(vs->c, m, cg_db->mlsa_alpha, vs);
+			vs->c[0] += log(e1 / e2) / 2;
+		}
+
+		return;
+	}
+
+	mc2b(mc, vs->cc, m, cg_db->mlsa_alpha);
+
+	if (cg_db->mlsa_beta > 0.0 && m > 1) {
+		e1 = b2en(vs->cc, m, cg_db->mlsa_alpha, vs);
+		vs->cc[1] -= cg_db->mlsa_beta * cg_db->mlsa_alpha * mc[2];
+		for (k = 2; k <= m; k++)
+			vs->cc[k] *= (1.0 + cg_db->mlsa_beta);
+		e2 = b2en(vs->cc, m, cg_db->mlsa_alpha, vs);
+		vs->cc[0] += log(e1 / e2) / 2.0;
+	}
+
+	for (k = 0; k <= m; k++)
+		vs->cinc[k] = (vs->cc[k] - vs->c[k]) * (double) vs->iprd / (double) vs->fprd;
+
+	if (vs->p1 != 0.0 && p != 0.0) {
+		inc = (p - vs->p1) * (double) vs->iprd / (double) vs->fprd;
+	} else {
+		inc	   = 0.0;
+		vs->pc = p;
+		vs->p1 = 0.0;
+	}
+
+	for (j = vs->fprd, i = (vs->iprd + 1) / 2; j--;) {
+		if (vs->p1 == 0.0) {
+			if (vs->gauss) {
+				x = (double) nrandom(vs);
+			} else x = plus_or_minus_one();
+			if (str != NULL) /* MIXED EXCITATION */
+			{
+				xnoise = x;
+				xpulse = 0.0;
+			}
+		} else {
+			if ((vs->pc += 1.0) >= vs->p1) {
+				x	   = sqrt(vs->p1);
+				vs->pc = vs->pc - vs->p1;
+			} else x = 0.0;
+
+			if (str != NULL) /* MIXED EXCITATION */
+			{
+				xpulse = x;
+				xnoise = plus_or_minus_one();
+			}
+		}
+
+		/* MIXED EXCITATION */
+		/* The real work -- apply shaping filters to pulse and noise */
+		if (str != NULL) {
+			fxpulse = fxnoise = 0.0;
+			for (k = vs->ME_order - 1; k > 0; k--) {
+				fxpulse += vs->hpulse[k] * vs->xpulsesig[k];
+				fxnoise += vs->hnoise[k] * vs->xnoisesig[k];
+
+				vs->xpulsesig[k] = vs->xpulsesig[k - 1];
+				vs->xnoisesig[k] = vs->xnoisesig[k - 1];
+			}
+			fxpulse += vs->hpulse[0] * xpulse;
+			fxnoise += vs->hnoise[0] * xnoise;
+			vs->xpulsesig[0] = xpulse;
+			vs->xnoisesig[0] = xnoise;
+
+			x = fxpulse + fxnoise; /* excitation is pulse plus noise */
+		}
+
+		if (cg_db->sample_rate == 8000) /* 8KHz voices are too quiet: this is probably not general */
+			x *= exp(vs->c[0]) * 2.0;
+		else x *= exp(vs->c[0]) * gain;
+
+		// MAREK: comment out to disable filter.
+		float formantShift = 1.f; // 0.6 to 1.4
+		formantShift	   = 1.4;
+		x				   = mlsadf(x, vs->c, m, cg_db->mlsa_alpha * formantShift, vs->pd, vs->d1, vs);
+
+		wav->samples[*pos] = (short) x;
+		*pos += 1;
+
+		if (!--i) {
+			vs->p1 += inc;
+			for (k = 0; k <= m; k++)
+				vs->c[k] += vs->cinc[k];
+			i = vs->iprd;
+		}
+	}
+
+	vs->p1 = p;
+	memmove(vs->c, vs->cc, sizeof(double) * (m + 1));
 }
 
 static void init_vocoder(double fs, int framel, int m, VocoderSetup *vs, cst_cg_db *cg_db) {
@@ -250,38 +391,6 @@ static void init_vocoder(double fs, int framel, int m, VocoderSetup *vs, cst_cg_
 	vs->h		  = cg_db->me_h;
 }
 
-static double plus_or_minus_one() {
-	/* Randomly return 1 or -1 */
-	/* not sure rand() is portable */
-	if (rand() > RAND_MAX / 2.0) return 1.0;
-	else return -1.0;
-}
-
-float mtof(float f) {
-	return (8.17579891564 * exp(.0577622650 * f));
-}
-
-int nextNote(int prev) {
-	if (rand() % 100 < 50) {
-		return prev;
-	}
-
-	if (rand() % 100 < 50) {
-		prev++;
-		if (prev > 20) prev = 20;
-		return prev;
-	}
-	prev--;
-	if (prev < 0) prev = 0;
-	return prev;
-}
-int currNote = 0;
-int penta[]	 = {0, 3, 5, 7, 10};
-double lookupNote(int noteIndex) {
-	return mtof(48 + penta[noteIndex % 5] + 12 * (noteIndex / 5));
-}
-
-int loopCount = 0;
 static void vocoder(
 	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, cst_wave *wav, long *pos) {
 	//	loopCount++;
@@ -634,7 +743,7 @@ static void c2ir(double *c, int nc, double *h, int leng) {
 	return;
 }
 
-static void free_vocoder(VocoderSetup *vs) {
+void free_vocoder(VocoderSetup *vs) {
 	cst_free(vs->c);
 	cst_free(vs->mc);
 	cst_free(vs->d);

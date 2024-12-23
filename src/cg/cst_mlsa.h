@@ -64,6 +64,7 @@
 #include "cst_cg.h"
 #include "VocoderSetup.h"
 void synthesis_body_marek(StreamingSynthContext *ctx);
+void initVocoderMarek(StreamingSynthContext *ctx);
 
 static void init_vocoder(double fs, int framel, int m, VocoderSetup *vs, cst_cg_db *cg_db);
 static void vocoder(
@@ -81,6 +82,6 @@ static void b2mc(double *b, double *mc, int m, double a);
 static void freqt(double *c1, int m1, double *c2, int m2, double a, VocoderSetup *vs);
 static void c2ir(double *c, int nc, double *h, int leng);
 
-static void free_vocoder(VocoderSetup *vs);
+void free_vocoder(VocoderSetup *vs);
 
 #endif /* __CST_MLSA_H */

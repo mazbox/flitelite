@@ -297,8 +297,8 @@ void mareksVersion() {
 	const char *text =
 		//"Nettie, so sweaty, but she makes it look confetti-ready";
 		//	"I met Nettie on a summer's day, her shine could light the Milky Way, but oh, the heat made her sway, dripping down in a misty spray, her glow was real, her charm did stay, even as sweat beads found their way, her laugh, a breeze to cool dismay, a sweaty queen in her own ballet, she said, It’s life, come what may, her spirit bold, her skies not gray, I saw the sweat, not her decay, it told a story, clear as clay, Nettie dances, come what may, sweat is pride in its own array, I stand with Nettie, every day, her warmth melts fears away.";
-		"Iy'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
-	cst_voice *voice = flite_voice_select(NULL);
+		"ahhee'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
+	cst_voice *voice = flite_voice_select(nullptr);
 
 	// cg_make_params in cst_cg.c can set stretch
 	// main synth is in vocoder() in cst_mlsa.c where you can mess with the pitch and the unvoiced and enable disable filter
@@ -308,26 +308,16 @@ void mareksVersion() {
 	cst_utterance *u = new_utterance();
 	utt_set_input_text(u, text);
 
-	//	flite_do_synth(u, voice, utt_synth);
 	utt_init(u, voice);
 
-	//	cst_featvalpair *fun = u->features->head;
-	//	while(fun !=NULL && fun->name!=NULL && fun->val!=NULL) {
-	//		printf("%s\n", fun->name);
-	//		fun = fun->next;
-	//	}
-
-	// everything happens inside utt_synth
 	utt_synth(u);
 
 	StreamingSynthContext *ctx = prepareForStreamingSynth(u);
 
 	doSynthesis(u, ctx);
-	// this is the output as a wave
-	cst_wave *wav = utt_wave(u);
 
 	// save it to a file
-	cst_wave_save_riff(wav, "out.wav");
+	cst_wave_save_riff(ctx->wave, "out.wav");
 
 	disposeStreamingSynthContext(ctx);
 	delete_utterance(u);
