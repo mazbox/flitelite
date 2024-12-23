@@ -167,41 +167,26 @@ static cst_wave *synthesis_body(const cst_track *params, /* f0 + mcep */
 		return NULL;
 	} else return wave;
 }
-
-cst_wave *synthesis_body_marek(StreamingSynthContext *ctx, double framem, int mlsa_speed_param) {
+void initVocoderMarek(StreamingSynthContext *ctx) {
 	double fs = ctx->cg_db->sample_rate;
-
-	int num_mcep = ctx->params->num_channels - 1;
-	double *mcep = cst_alloc(double, num_mcep + 1);
-
-	// Basically ignore some of the higher coeffs
-	// It'll sound worse, but it will be faster
-	if ((num_mcep > mlsa_speed_param) && ((num_mcep - mlsa_speed_param) > 4)) num_mcep -= mlsa_speed_param;
-	int framel = (int) (0.5 + (framem * fs / 1000.0)); /* 80 for 16KHz */
-
-	init_vocoder(fs, framel, num_mcep, &ctx->vs, ctx->cg_db);
-
-	// synthesize waveforms by MLSA filter
-	cst_wave *wave = new_wave();
-	cst_wave_resize(wave, ctx->params->num_frames * framel, 1);
-	wave->sample_rate = fs;
+	init_vocoder(fs, ctx->frameSizeSamples, ctx->num_mcep, &ctx->vs, ctx->cg_db);
+}
+void synthesis_body_marek(StreamingSynthContext *ctx) {
+	initVocoderMarek(ctx);
 
 	long pos = 0;
 	for (int t = 0; t < ctx->params->num_frames; t++) {
-		for (int i = 1; i < num_mcep + 1; i++)
-			mcep[i - 1] = ctx->params->frames[t][i];
-		mcep[num_mcep] = 0;
+		for (int i = 1; i < ctx->num_mcep + 1; i++)
+			ctx->mcep[i - 1] = ctx->params->frames[t][i];
+		ctx->mcep[ctx->num_mcep] = 0;
 
 		double f0 = (double) ctx->params->frames[t][0];
 
-		vocoder(f0, mcep, ctx->str_track->frames[t], num_mcep, ctx->cg_db, &ctx->vs, wave, &pos);
+		vocoder(f0, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, ctx->wave, &pos);
 	}
-	wave->num_samples = pos;
+	ctx->wave->num_samples = pos;
 
-	cst_free(mcep);
 	free_vocoder(&ctx->vs);
-
-	return wave;
 }
 
 static void init_vocoder(double fs, int framel, int m, VocoderSetup *vs, cst_cg_db *cg_db) {
@@ -309,7 +294,7 @@ static void vocoder(
 	//	}
 	//	p = lookupNote(currNote);
 	//	printf("%f\n", p);
-	//	p *= 0.5;
+	p *= 0.5;
 	//	p = 0;
 	//	p = 400;
 	//	if(p!=0) p=200;
@@ -428,7 +413,7 @@ static void vocoder(
 
 		// MAREK: comment out to disable filter.
 		float formantShift = 1.f; // 0.6 to 1.4
-		formantShift	   = 0.6;
+		formantShift	   = 1.4;
 		x				   = mlsadf(x, vs->c, m, cg_db->mlsa_alpha * formantShift, vs->pd, vs->d1, vs);
 
 		wav->samples[*pos] = (short) x;

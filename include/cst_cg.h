@@ -174,6 +174,11 @@ typedef struct StreamingSynthContext {
 	cst_track *str_track;
 	cst_track *params; // f0 + mcep
 	VocoderSetup vs;
+	int num_mcep;
+	double *mcep;
+	double frameSizeMs;
+	int frameSizeSamples;
+	cst_wave *wave;
 } StreamingSynthContext;
 
 StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt);

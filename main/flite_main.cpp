@@ -284,7 +284,6 @@ int main(int argc, char **argv) {
 
 	if (lex_addenda_file) flite_voice_add_lex_addenda(v, lex_addenda_file);
 
-	
 	mareksVersion();
 	delete_features(extra_feats);
 	delete_val(flite_voice_list);
@@ -296,7 +295,9 @@ int main(int argc, char **argv) {
 void mareksVersion() {
 	//	flite_text_To_speech(, , "none");
 	const char *text =
-		"I'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
+		//"Nettie, so sweaty, but she makes it look confetti-ready";
+		//	"I met Nettie on a summer's day, her shine could light the Milky Way, but oh, the heat made her sway, dripping down in a misty spray, her glow was real, her charm did stay, even as sweat beads found their way, her laugh, a breeze to cool dismay, a sweaty queen in her own ballet, she said, It’s life, come what may, her spirit bold, her skies not gray, I saw the sweat, not her decay, it told a story, clear as clay, Nettie dances, come what may, sweat is pride in its own array, I stand with Nettie, every day, her warmth melts fears away.";
+		"Iy'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
 	cst_voice *voice = flite_voice_select(NULL);
 
 	// cg_make_params in cst_cg.c can set stretch

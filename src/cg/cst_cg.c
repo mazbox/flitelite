@@ -692,30 +692,47 @@ StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt) {
 	ctx->str_track		   = val_track(utt_feat_val(utt, "str_track"));
 	cst_track *param_track = val_track(utt_feat_val(utt, "param_track"));
 	// this smooths the params apparently, sounds awful without it
-	ctx->params = mlpg(param_track, ctx->cg_db);
+	ctx->params	  = mlpg(param_track, ctx->cg_db);
+	ctx->num_mcep = ctx->params->num_channels - 1;
+	ctx->mcep	  = cst_alloc(double, ctx->num_mcep + 1);
 	return ctx;
 }
 
 void disposeStreamingSynthContext(StreamingSynthContext *ctx) {
 	if (ctx->params != NULL) delete_track(ctx->params);
+	cst_free(ctx->mcep);
+
 	free(ctx);
 }
 #include "cst_vc.h"
 #include "cst_mlsa.h"
 
 void doSynthesis(cst_utterance *utt, StreamingSynthContext *ctx) {
+	ctx->frameSizeMs = 5.0;
+	if (ctx->params->num_frames > 1) ctx->frameSizeMs = 1000.0 * (ctx->params->times[1] - ctx->params->times[0]);
+
+	// this controls the speed!
+	ctx->frameSizeMs *= 1.0;
+
+	double fs			  = ctx->cg_db->sample_rate;
+	ctx->frameSizeSamples = (int) (0.5 + (ctx->frameSizeMs * fs / 1000.0)); /* 80 for 16KHz */
+
+	// synthesize waveforms by MLSA filter
+	ctx->wave = new_wave();
+	cst_wave_resize(ctx->wave, ctx->params->num_frames * ctx->frameSizeSamples, 1);
+	ctx->wave->sample_rate = fs;
+
 	/* Values 5-15 might be reasonably to speed things up.  This number */
 	/* is used to reduce the number of parameters used in the mceps      */
 	/* e.g. value 10 will speed up from 21.0 faster than real time       */
 	/* to 26.4 times faster than real time (for builtin rms) */
 	int mlsaSpeedParam = 0;
+	// Basically ignore some of the higher coeffs
+	// It'll sound worse, but it will be faster
+	if ((ctx->num_mcep > mlsaSpeedParam) && ((ctx->num_mcep - mlsaSpeedParam) > 4))
+		ctx->num_mcep -= mlsaSpeedParam;
 
-	double frameSizeMs;
+	synthesis_body_marek(ctx);
 
-	if (ctx->params->num_frames > 1) frameSizeMs = 1000.0 * (ctx->params->times[1] - ctx->params->times[0]);
-	else frameSizeMs = 5.0;
-
-	cst_wave *w = synthesis_body_marek(ctx, frameSizeMs, mlsaSpeedParam);
-
-	utt_set_wave(utt, w);
+	utt_set_wave(utt, ctx->wave);
 }

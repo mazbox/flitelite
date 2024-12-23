@@ -63,7 +63,7 @@
 #include "cst_vc.h"
 #include "cst_cg.h"
 #include "VocoderSetup.h"
-cst_wave *synthesis_body_marek(StreamingSynthContext *ctx, double framem, int mlsa_speed_param);
+void synthesis_body_marek(StreamingSynthContext *ctx);
 
 static void init_vocoder(double fs, int framel, int m, VocoderSetup *vs, cst_cg_db *cg_db);
 static void vocoder(
