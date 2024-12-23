@@ -10,3 +10,5 @@ include/flite_version.h
 .DS_Store
 *.wav
 
+cmake-build-*
+cmake-build-*

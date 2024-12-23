@@ -172,7 +172,7 @@ int cst_cg_dump_voice(const cst_voice *v, const cst_string *filename);
 typedef struct StreamingSynthContext {
 	cst_cg_db *cg_db;
 	cst_track *str_track;
-	cst_track *smoothed_track;
+	cst_track *params; // f0 + mcep
 	VocoderSetup vs;
 } StreamingSynthContext;
 

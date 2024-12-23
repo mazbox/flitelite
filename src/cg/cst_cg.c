@@ -691,12 +691,13 @@ StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt) {
 
 	ctx->str_track		   = val_track(utt_feat_val(utt, "str_track"));
 	cst_track *param_track = val_track(utt_feat_val(utt, "param_track"));
-	ctx->smoothed_track	   = mlpg(param_track, ctx->cg_db);
+	// this smooths the params apparently, sounds awful without it
+	ctx->params = mlpg(param_track, ctx->cg_db);
 	return ctx;
 }
 
 void disposeStreamingSynthContext(StreamingSynthContext *ctx) {
-	if (ctx->smoothed_track != NULL) delete_track(ctx->smoothed_track);
+	if (ctx->params != NULL) delete_track(ctx->params);
 	free(ctx);
 }
 #include "cst_vc.h"
@@ -707,20 +708,14 @@ void doSynthesis(cst_utterance *utt, StreamingSynthContext *ctx) {
 	/* is used to reduce the number of parameters used in the mceps      */
 	/* e.g. value 10 will speed up from 21.0 faster than real time       */
 	/* to 26.4 times faster than real time (for builtin rms) */
-	int mlsa_speed_param = 0;
+	int mlsaSpeedParam = 0;
 
-	/* Resynthesizes a wave from given track */
-	cst_wave *wave = 0;
-	int sr		   = ctx->cg_db->sample_rate;
-	double shift;
+	double frameSizeMs;
 
-	if (ctx->smoothed_track->num_frames > 1)
-		shift = 1000.0 * (ctx->smoothed_track->times[1] - ctx->smoothed_track->times[0]);
-	else shift = 5.0;
+	if (ctx->params->num_frames > 1) frameSizeMs = 1000.0 * (ctx->params->times[1] - ctx->params->times[0]);
+	else frameSizeMs = 5.0;
 
-	cst_wave *w = synthesis_body_marek(ctx, shift, mlsa_speed_param);
+	cst_wave *w = synthesis_body_marek(ctx, frameSizeMs, mlsaSpeedParam);
 
-	delete_track(ctx->smoothed_track);
-	ctx->smoothed_track = NULL;
 	utt_set_wave(utt, w);
 }
