@@ -178,9 +178,10 @@ void initVocoderMarek(StreamingSynthContext *ctx) {
 	init_vocoder(fs, ctx->frameSizeSamples, ctx->num_mcep, &ctx->vs, ctx->cg_db);
 }
 void marekVocoder(
-	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, cst_wave *wav, long *pos);
+	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, float *samples);
 void synthesis_body_marek(StreamingSynthContext *ctx) {
-	long pos = 0;
+	float *buff = malloc(sizeof(float) * ctx->frameSizeSamples);
+	long pos	= 0;
 	for (int t = 0; t < ctx->params->num_frames; t++) {
 		for (int i = 1; i < ctx->num_mcep + 1; i++)
 			ctx->mcep[i - 1] = ctx->params->frames[t][i];
@@ -188,14 +189,18 @@ void synthesis_body_marek(StreamingSynthContext *ctx) {
 
 		double f0 = (double) ctx->params->frames[t][0];
 
-		marekVocoder(
-			f0, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, ctx->wave, &pos);
+		marekVocoder(f0, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, buff);
+
+		for (int k = 0; k < ctx->frameSizeSamples; k++) {
+			ctx->wave->samples[pos++] = buff[k] * 32767.0;
+		}
 	}
+	free(buff);
 	ctx->wave->num_samples = pos;
 }
 
 void marekVocoder(
-	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, cst_wave *wav, long *pos) {
+	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, float *samples) {
 	//	p *= 0.5;
 
 	double inc, x, e1, e2;
@@ -264,6 +269,7 @@ void marekVocoder(
 		vs->p1 = 0.0;
 	}
 
+	int pos = 0;
 	for (j = vs->fprd, i = (vs->iprd + 1) / 2; j--;) {
 		if (vs->p1 == 0.0) {
 			if (vs->gauss) {
@@ -311,12 +317,11 @@ void marekVocoder(
 		else x *= exp(vs->c[0]) * gain;
 
 		// MAREK: comment out to disable filter.
-		float formantShift = 1.f; // 0.6 to 1.4
-		formantShift	   = 1.4;
+		float formantShift = 1.f; // 0.6 to 1.38
+		formantShift	   = 1.38;
 		x				   = mlsadf(x, vs->c, m, cg_db->mlsa_alpha * formantShift, vs->pd, vs->d1, vs);
 
-		wav->samples[*pos] = (short) x;
-		*pos += 1;
+		samples[pos++] = x / 32767.0;
 
 		if (!--i) {
 			vs->p1 += inc;
