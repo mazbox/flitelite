@@ -64,6 +64,7 @@
 #include "cst_cg.h"
 #include "VocoderSetup.h"
 void synthesis_body_marek(StreamingSynthContext *ctx);
+void synthesizeFrame_marek(StreamingSynthContext *ctx, int t, float *buff);
 void initVocoderMarek(StreamingSynthContext *ctx);
 
 static void init_vocoder(double fs, int framel, int m, VocoderSetup *vs, cst_cg_db *cg_db);

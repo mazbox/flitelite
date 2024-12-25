@@ -734,7 +734,10 @@ void disposeStreamingSynthContext(StreamingSynthContext *ctx) {
 	free_vocoder(&ctx->vs);
 	free(ctx);
 }
-
 void doSynthesis(cst_utterance *utt, StreamingSynthContext *ctx) {
 	synthesis_body_marek(ctx);
+}
+
+void synthesizeFrame(StreamingSynthContext *ctx, int t, float *buff) {
+	synthesizeFrame_marek(ctx, t, buff);
 }

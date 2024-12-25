@@ -37,7 +37,7 @@
 /*  Simple top level program                                             */
 /*                                                                       */
 /*************************************************************************/
-
+#include <vector>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
@@ -291,6 +291,7 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
+#include "wavio.h"
 
 void mareksVersion() {
 	//	flite_text_To_speech(, , "none");
@@ -315,10 +316,16 @@ void mareksVersion() {
 	StreamingSynthContext *ctx = prepareForStreamingSynth(u);
 
 	doSynthesis(u, ctx);
-
-	// save it to a file
-	cst_wave_save_riff(ctx->wave, "out.wav");
-
+	FloatBuffer buff;
+	FloatBuffer outs;
+	buff.resize(ctx->frameSizeSamples);
+	for (int t = 0; t < ctx->params->num_frames; t++) {
+		synthesizeFrame(ctx, t, buff.data());
+		outs.insert(outs.end(), buff.begin(), buff.end());
+	}
+	//	// save it to a file
+	//	cst_wave_save_riff(ctx->wave, "out.wav");
+	saveWav("out.wav", outs, 1, ctx->cg_db->sample_rate);
 	disposeStreamingSynthContext(ctx);
 	delete_utterance(u);
 }

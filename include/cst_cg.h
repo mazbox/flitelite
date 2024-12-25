@@ -184,6 +184,7 @@ typedef struct StreamingSynthContext {
 StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt);
 
 void disposeStreamingSynthContext(StreamingSynthContext *ctx);
+void synthesizeFrame(StreamingSynthContext *ctx, int t, float *buff);
 
 void doSynthesis(cst_utterance *utt, StreamingSynthContext *ctx);
 

@@ -179,17 +179,22 @@ void initVocoderMarek(StreamingSynthContext *ctx) {
 }
 void marekVocoder(
 	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, float *samples);
+
+void synthesizeFrame_marek(StreamingSynthContext *ctx, int t, float *buff) {
+	for (int i = 1; i < ctx->num_mcep + 1; i++)
+		ctx->mcep[i - 1] = ctx->params->frames[t][i];
+	ctx->mcep[ctx->num_mcep] = 0;
+
+	double f0 = (double) ctx->params->frames[t][0];
+
+	marekVocoder(f0, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, buff);
+}
+
 void synthesis_body_marek(StreamingSynthContext *ctx) {
 	float *buff = malloc(sizeof(float) * ctx->frameSizeSamples);
 	long pos	= 0;
 	for (int t = 0; t < ctx->params->num_frames; t++) {
-		for (int i = 1; i < ctx->num_mcep + 1; i++)
-			ctx->mcep[i - 1] = ctx->params->frames[t][i];
-		ctx->mcep[ctx->num_mcep] = 0;
-
-		double f0 = (double) ctx->params->frames[t][0];
-
-		marekVocoder(f0, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, buff);
+		synthesizeFrame(ctx, t, buff);
 
 		for (int k = 0; k < ctx->frameSizeSamples; k++) {
 			ctx->wave->samples[pos++] = buff[k] * 32767.0;
