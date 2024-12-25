@@ -698,6 +698,9 @@ void setFrameSize(StreamingSynthContext *ctx) {
 #include "cst_mlsa.h"
 StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt) {
 	StreamingSynthContext *ctx = malloc(sizeof(StreamingSynthContext));
+	ctx->sing				   = 0;
+	ctx->pitch				   = 256;
+	ctx->formantShift		   = 1;
 
 	ctx->cg_db = val_cg_db(utt_feat_val(utt, "cg_db"));
 
