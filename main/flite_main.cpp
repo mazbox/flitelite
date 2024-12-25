@@ -314,8 +314,9 @@ void mareksVersion() {
 	utt_synth(u);
 
 	StreamingSynthContext *ctx = prepareForStreamingSynth(u);
-
-	doSynthesis(u, ctx);
+	ctx->pitch				   = 100;
+	ctx->sing				   = 1;
+	ctx->formantShift		   = 0.6;
 	FloatBuffer buff;
 	FloatBuffer outs;
 	buff.resize(ctx->frameSizeSamples);

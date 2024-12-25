@@ -721,9 +721,6 @@ StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt) {
 		setFrameSize(ctx);
 	}
 	// synthesize waveforms by MLSA filter
-	ctx->wave = new_wave();
-	cst_wave_resize(ctx->wave, ctx->params->num_frames * ctx->frameSizeSamples, 1);
-	ctx->wave->sample_rate = ctx->cg_db->sample_rate;
 	initVocoderMarek(ctx);
 	return ctx;
 }
@@ -733,9 +730,6 @@ void disposeStreamingSynthContext(StreamingSynthContext *ctx) {
 	cst_free(ctx->mcep);
 	free_vocoder(&ctx->vs);
 	free(ctx);
-}
-void doSynthesis(cst_utterance *utt, StreamingSynthContext *ctx) {
-	synthesis_body_marek(ctx);
 }
 
 void synthesizeFrame(StreamingSynthContext *ctx, int t, float *buff) {

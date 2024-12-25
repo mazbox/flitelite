@@ -177,8 +177,14 @@ void initVocoderMarek(StreamingSynthContext *ctx) {
 	double fs = ctx->cg_db->sample_rate;
 	init_vocoder(fs, ctx->frameSizeSamples, ctx->num_mcep, &ctx->vs, ctx->cg_db);
 }
-void marekVocoder(
-	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, float *samples);
+void marekVocoder(double p,
+				  float formantShift,
+				  double *mc,
+				  const float *str,
+				  int m,
+				  cst_cg_db *cg_db,
+				  VocoderSetup *vs,
+				  float *samples);
 
 void synthesizeFrame_marek(StreamingSynthContext *ctx, int t, float *buff) {
 	for (int i = 1; i < ctx->num_mcep + 1; i++)
@@ -186,26 +192,21 @@ void synthesizeFrame_marek(StreamingSynthContext *ctx, int t, float *buff) {
 	ctx->mcep[ctx->num_mcep] = 0;
 
 	double f0 = (double) ctx->params->frames[t][0];
-
-	marekVocoder(f0, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, buff);
-}
-
-void synthesis_body_marek(StreamingSynthContext *ctx) {
-	float *buff = malloc(sizeof(float) * ctx->frameSizeSamples);
-	long pos	= 0;
-	for (int t = 0; t < ctx->params->num_frames; t++) {
-		synthesizeFrame(ctx, t, buff);
-
-		for (int k = 0; k < ctx->frameSizeSamples; k++) {
-			ctx->wave->samples[pos++] = buff[k] * 32767.0;
-		}
+	if (ctx->sing) {
+		f0 = ctx->pitch;
 	}
-	free(buff);
-	ctx->wave->num_samples = pos;
+	marekVocoder(
+		f0, ctx->formantShift, ctx->mcep, ctx->str_track->frames[t], ctx->num_mcep, ctx->cg_db, &ctx->vs, buff);
 }
 
-void marekVocoder(
-	double p, double *mc, const float *str, int m, cst_cg_db *cg_db, VocoderSetup *vs, float *samples) {
+void marekVocoder(double p,
+				  float formantShift,
+				  double *mc,
+				  const float *str,
+				  int m,
+				  cst_cg_db *cg_db,
+				  VocoderSetup *vs,
+				  float *samples) {
 	//	p *= 0.5;
 
 	double inc, x, e1, e2;
@@ -321,10 +322,7 @@ void marekVocoder(
 			x *= exp(vs->c[0]) * 2.0;
 		else x *= exp(vs->c[0]) * gain;
 
-		// MAREK: comment out to disable filter.
-		float formantShift = 1.f; // 0.6 to 1.38
-		formantShift	   = 1.38;
-		x				   = mlsadf(x, vs->c, m, cg_db->mlsa_alpha * formantShift, vs->pd, vs->d1, vs);
+		x = mlsadf(x, vs->c, m, cg_db->mlsa_alpha * formantShift, vs->pd, vs->d1, vs);
 
 		samples[pos++] = x / 32767.0;
 

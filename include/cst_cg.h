@@ -178,14 +178,15 @@ typedef struct StreamingSynthContext {
 	double *mcep;
 	double frameSizeMs;
 	int frameSizeSamples;
-	cst_wave *wave;
+	int sing; // 1 for singing, 0 for speaking
+	float pitch; // in hz
+	float formantShift; //[0.6,1.4]
+	//	float speed;
 } StreamingSynthContext;
 
 StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt);
 
 void disposeStreamingSynthContext(StreamingSynthContext *ctx);
 void synthesizeFrame(StreamingSynthContext *ctx, int t, float *buff);
-
-void doSynthesis(cst_utterance *utt, StreamingSynthContext *ctx);
 
 #endif
