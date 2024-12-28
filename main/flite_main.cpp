@@ -166,194 +166,38 @@ static void ef_set(cst_features *f, const char *fv, const char *type) {
 	}
 }
 
-int main(int argc, char **argv) {
-	printf("flite lite\n");
-	struct timeval tv;
-	cst_voice *v;
-	const char *filename;
-	const char *outtype;
-	cst_voice *desired_voice = 0;
-	const char *voicedir	 = NULL;
-	int i;
-	float durs;
-
-	int explicit_filename, explicit_text, explicit_phones;
-
-	int bench_iter = 0;
-	cst_features *extra_feats;
-	const char *lex_addenda_file = NULL;
-	const char *voicedumpfile	 = NULL;
-	cst_audio_streaming_info *asi;
-
-	filename = 0;
-	outtype	 = "play"; /* default is to play */
-
-	explicit_text = explicit_filename = explicit_phones = FALSE;
-
-	extra_feats = new_features();
-
-	flite_init();
-	flite_set_lang_list(); /* defined at compilation time */
-
-	for (i = 1; i < argc; i++) {
-		if (cst_streq(argv[i], "-h") || cst_streq(argv[i], "--help") || cst_streq(argv[i], "-?")) flite_usage();
-
-		else if (cst_streq(argv[i], "-lv")) {
-			if (flite_voice_list == NULL) flite_set_voice_list(voicedir);
-			flite_voice_list_print();
-			exit(0);
-		}
-
-		else if ((cst_streq(argv[i], "-o")) && (i + 1 < argc)) {
-			outtype = argv[i + 1];
-			i++;
-		} else if ((cst_streq(argv[i], "-voice")) && (i + 1 < argc)) {
-			if (flite_voice_list == NULL) flite_set_voice_list(voicedir);
-			desired_voice = flite_voice_select(argv[i + 1]);
-			i++;
-		} else if ((cst_streq(argv[i], "-voicedir")) && (i + 1 < argc)) {
-			voicedir = argv[i + 1];
-			if (flite_voice_list == NULL) flite_set_voice_list(voicedir);
-			i++;
-		} else if ((cst_streq(argv[i], "-add_lex")) && (i + 1 < argc)) {
-			lex_addenda_file = argv[i + 1];
-			i++;
-		} else if (cst_streq(argv[i], "-f") && (i + 1 < argc)) {
-			filename		  = argv[i + 1];
-			explicit_filename = TRUE;
-			i++;
-		} else if (cst_streq(argv[i], "-pw")) {
-			feat_set_string(extra_feats, "print_info_relation", "Word");
-			feat_set(extra_feats, "post_synth_hook_func", uttfunc_val(&print_info));
-		} else if (cst_streq(argv[i], "-ps")) {
-			feat_set_string(extra_feats, "print_info_relation", "Segment");
-			feat_set(extra_feats, "post_synth_hook_func", uttfunc_val(&print_info));
-		} else if (cst_streq(argv[i], "-psdur")) {
-			// Added by AUP Mar 2013 for extracting durations (end-time) of segments
-			// (useful in talking heads, etc.)
-			feat_set_string(extra_feats, "print_info_relation", "SegmentEndTime");
-			feat_set(extra_feats, "post_synth_hook_func", uttfunc_val(&print_info));
-		} else if (cst_streq(argv[i], "-psstress")) {
-			feat_set_string(extra_feats, "print_info_relation", "SegmentStress");
-			feat_set(extra_feats, "post_synth_hook_func", uttfunc_val(&print_info));
-		}
-
-		else if (cst_streq(argv[i], "-pr") && (i + 1 < argc)) {
-			feat_set_string(extra_feats, "print_info_relation", argv[i + 1]);
-			feat_set(extra_feats, "post_synth_hook_func", uttfunc_val(&print_info));
-			i++;
-		} else if (cst_streq(argv[i], "-voicedump") && (i + 1 < argc)) {
-			voicedumpfile = argv[i + 1];
-			i++;
-		} else if ((cst_streq(argv[i], "-set") || cst_streq(argv[i], "-s")) && (i + 1 < argc)) {
-			ef_set(extra_feats, argv[i + 1], 0);
-			i++;
-		} else if (cst_streq(argv[i], "--seti") && (i + 1 < argc)) {
-			ef_set(extra_feats, argv[i + 1], "int");
-			i++;
-		} else if (cst_streq(argv[i], "--setf") && (i + 1 < argc)) {
-			ef_set(extra_feats, argv[i + 1], "float");
-			i++;
-		} else if (cst_streq(argv[i], "--sets") && (i + 1 < argc)) {
-			ef_set(extra_feats, argv[i + 1], "string");
-			i++;
-		} else if (cst_streq(argv[i], "-p") && (i + 1 < argc)) {
-			filename		= argv[i + 1];
-			explicit_phones = TRUE;
-			i++;
-		} else if (cst_streq(argv[i], "-t") && (i + 1 < argc)) {
-			filename	  = argv[i + 1];
-			explicit_text = TRUE;
-			i++;
-		} else if (filename) outtype = argv[i];
-		else filename = argv[i];
-	}
-
-	if (filename == NULL) filename = "-"; /* stdin */
-	if (flite_voice_list == NULL) flite_set_voice_list(voicedir);
-	if (desired_voice == 0) desired_voice = flite_voice_select(NULL);
-
-	v = desired_voice;
-	feat_copy_into(extra_feats, v->features);
-	durs = 0.0;
-
-	if (voicedumpfile != NULL) {
-		flite_voice_dump(v, voicedumpfile);
-		exit(0);
-	}
-
-	if (lex_addenda_file) flite_voice_add_lex_addenda(v, lex_addenda_file);
-
-	mareksVersion();
-	delete_features(extra_feats);
-	delete_val(flite_voice_list);
-	flite_voice_list = 0;
-
-	return 0;
-}
 #include "wavio.h"
 #include "FestivalSpeechSynth.h"
-//
-//void fifoTest() {
-//	{
-//		VoiceSynthFifo fifo(256);
-//		fifo.resize(32);
-//		assert(fifo.availableToConsume() == 0);
-//		std::vector<float> data;
-//		data.resize(12, 0);
-//		fifo.write(data);
-//		assert(fifo.availableToConsume() == 12);
-//		fifo.write(data);
-//		assert(fifo.availableToConsume() == 24);
-//
-//		data.resize(8);
-//		fifo.write(data);
-//		assert(fifo.availableToConsume() == 32);
-//	}
-//	{
-//		VoiceSynthFifo fifo(8);
-//
-//		std::vector<float> f = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f};
-//		fifo.write(f);
-//		std::vector<float> out(4, 0);
-//		assert(fifo.availableToConsume() == 8);
-//		fifo.consume(4, out.data());
-//		for (int i = 0; i < out.size(); i++) {
-//			printf("%f %d\n", out[i], i);
-//			assert(out[i] == i + 1);
-//		}
-//		assert(fifo.availableToConsume() == 4);
-//		fifo.consume(4, out.data());
-//		for (int i = 0; i < out.size(); i++) {
-//			printf("%f %d\n", out[i], i);
-//			assert(out[i] == i + 5);
-//		}
-//	}
-//}
 
 float mapf(float inp, float inMin, float inMax, float outMin, float outMax) {
 	float norm = (inp - inMin) / (inMax - inMin);
 	return outMin + norm * (outMax - outMin);
 }
-void mareksVersion() {
-	//	fifoTest();
-	//	for (int i = 0; i < 1000; i++) {
-	FestivalSpeechSynth speaky;
-	speaky.createParams(
-		"ahhee'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!");
-	FloatBuffer buff;
-	FloatBuffer outs;
-	outs.resize(256);
-	printf("%d\n", speaky.getSentenceDurationInSamples());
-	speaky.setPitch(50);
-	speaky.setSpeed(0.5);
-	speaky.setLooping(true);
-	speaky.setFormantShift(-0.5);
-	for (int t = 0; t < speaky.getSentenceDurationInSamples() * 4; t += outs.size()) {
-		speaky.setPitch(mapf(t, 0, speaky.getSentenceDurationInSamples(), 50, 500));
-		speaky.audioOut(outs);
-		buff.insert(buff.end(), outs.begin(), outs.end());
+
+void renderVoice() {
+}
+int main(int argc, char **argv) {
+	printf("flite lite\n");
+
+	for (int i = 0; i < 1; i++) {
+		FestivalSpeechSynth speaky;
+		speaky.createParams("Potato potato. Peanut peanut peanut!");
+		//		speaky.createParams(
+		//			"ahhee'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!");
+		FloatBuffer buff;
+		FloatBuffer outs;
+		outs.resize(256);
+		speaky.setPitch(50);
+		speaky.setSpeed(1);
+		speaky.setLooping(true);
+		speaky.setFormantShift(-0.5);
+		for (int t = 0; t < speaky.getSentenceDurationInSamples() * 4; t += outs.size()) {
+			//			speaky.setPitch(mapf(t, 0, speaky.getSentenceDurationInSamples(), 50, 500));
+			speaky.audioOut(outs);
+			buff.insert(buff.end(), outs.begin(), outs.end());
+		}
+		saveWav("out.wav", buff, 1, 48000);
 	}
-	saveWav("out.wav", buff, 1, 48000);
-	//	}
+
+	return 0;
 }

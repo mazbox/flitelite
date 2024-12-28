@@ -668,9 +668,10 @@ static double b2en(double *b, int m, double a, VocoderSetup *vs) {
 	int k;
 
 	if (vs->o < m) {
-		if (vs->mc != NULL) cst_free(vs->mc);
-
-		vs->mc	= cst_alloc(double, (m + 1) + 2 * vs->irleng);
+//		if (vs->mc != NULL) cst_free(vs->mc);
+//
+//		vs->mc = cst_alloc(double, (m + 1) + 2 * vs->irleng);
+//		printf("len %d\n", (m + 1) + 2 * vs->irleng);
 		vs->cep = vs->mc + m + 1;
 		vs->ir	= vs->cep + vs->irleng;
 	}
@@ -708,13 +709,15 @@ static void freqt(double *c1, int m1, double *c2, int m2, double a, VocoderSetup
 	if (vs->d == NULL) {
 		vs->size = m2;
 		vs->d	 = cst_alloc(double, vs->size + vs->size + 2);
+		printf("naughty malloc %d\n", vs->size + vs->size + 2);
 		vs->g	 = vs->d + vs->size + 1;
 	}
 
 	if (m2 > vs->size) {
-		cst_free(vs->d);
+//		cst_free(vs->d);
 		vs->size = m2;
-		vs->d	 = cst_alloc(double, vs->size + vs->size + 2);
+//		vs->d	 = cst_alloc(double, vs->size + vs->size + 2);
+//		printf("naughty malloc2 %d\n", vs->size + vs->size + 2);
 		vs->g	 = vs->d + vs->size + 1;
 	}
 

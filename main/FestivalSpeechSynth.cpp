@@ -5,6 +5,8 @@ extern "C" {
 #endif /* __cplusplus */
 #include "cst_cg.h"
 #include "flite.h"
+cst_voice *register_cmu_us_slt(const char *voxdir);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
@@ -75,12 +77,13 @@ public:
 
 FestivalSpeechSynth::FestivalSpeechSynth() {
 	data		= std::make_unique<FestivalSpeechData>();
-	data->voice = flite_voice_select(nullptr);
+	data->voice = register_cmu_us_slt(nullptr);
 }
 FestivalSpeechSynth::~FestivalSpeechSynth() {
 	if (data->u != nullptr) {
 		delete_utterance(data->u);
 	}
+	disposeStreamingSynthContext(data->ctx);
 }
 
 void FestivalSpeechSynth::createParams(const std::string &sentence) {
@@ -108,7 +111,7 @@ void FestivalSpeechSynth::setFormantShift(float shift) {
 }
 void FestivalSpeechSynth::readNextBufferAndUpsample() {
 	getNextFrame(synthOut);
-	upsampled.resize(synthOut.size()*upsampleRatio);
+	upsampled.resize(synthOut.size() * upsampleRatio);
 	for (int i = 0; i < synthOut.size(); i++) {
 		for (int k = 0; k < upsampleRatio; k++) {
 			upsampled[i * upsampleRatio + k] = synthOut[i];

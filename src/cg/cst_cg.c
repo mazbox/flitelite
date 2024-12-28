@@ -725,6 +725,8 @@ StreamingSynthContext *prepareForStreamingSynth(cst_utterance *utt) {
 	}
 	// synthesize waveforms by MLSA filter
 	initVocoderMarek(ctx);
+	ctx->vs.d  = malloc(sizeof(double) * 256);
+	ctx->vs.mc = malloc(sizeof(double) * 256);
 	return ctx;
 }
 

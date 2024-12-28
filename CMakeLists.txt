@@ -49,7 +49,7 @@ set(SOURCES
         ./lang/cmu_grapheme_lex/cmu_grapheme_lex.c
         ./lang/cmu_grapheme_lex/grapheme_unitran_tables.c
         ./main/flite_main.cpp
-        main/FestivalSpeechSynth.cpp
+        ./main/FestivalSpeechSynth.cpp
         ./main/flite_lang_list.c
         ./main/flite_voice_list.c
         ./main/flite_lite_config.h
