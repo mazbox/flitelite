@@ -19,7 +19,7 @@ public:
 
 private:
 	float speed	   = 1;
-	bool backwards = true;
+	bool backwards = false;
 	void readNextBufferAndUpsample();
 	int getInternalFrameSize() const;
 	void getNextFrame(std::vector<float> &frame);

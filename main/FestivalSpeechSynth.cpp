@@ -108,6 +108,7 @@ void FestivalSpeechSynth::setFormantShift(float shift) {
 }
 void FestivalSpeechSynth::readNextBufferAndUpsample() {
 	getNextFrame(synthOut);
+	upsampled.resize(synthOut.size()*upsampleRatio);
 	for (int i = 0; i < synthOut.size(); i++) {
 		for (int k = 0; k < upsampleRatio; k++) {
 			upsampled[i * upsampleRatio + k] = synthOut[i];
@@ -143,7 +144,6 @@ void FestivalSpeechSynth::getNextFrame(std::vector<float> &outs) {
 		cf = numFrames - currFrame - 1;
 	}
 	synthesizeFrame(data->ctx, cf, outs.data());
-	printf("%d\n", cf);
 	currFrame++;
 	if (looping) currFrame %= numFrames;
 }
