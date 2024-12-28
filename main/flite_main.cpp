@@ -292,41 +292,109 @@ int main(int argc, char **argv) {
 	return 0;
 }
 #include "wavio.h"
+#include "FestivalSpeechSynth.h"
+//
+//void fifoTest() {
+//	{
+//		VoiceSynthFifo fifo(256);
+//		fifo.resize(32);
+//		assert(fifo.availableToConsume() == 0);
+//		std::vector<float> data;
+//		data.resize(12, 0);
+//		fifo.write(data);
+//		assert(fifo.availableToConsume() == 12);
+//		fifo.write(data);
+//		assert(fifo.availableToConsume() == 24);
+//
+//		data.resize(8);
+//		fifo.write(data);
+//		assert(fifo.availableToConsume() == 32);
+//	}
+//	{
+//		VoiceSynthFifo fifo(8);
+//
+//		std::vector<float> f = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f};
+//		fifo.write(f);
+//		std::vector<float> out(4, 0);
+//		assert(fifo.availableToConsume() == 8);
+//		fifo.consume(4, out.data());
+//		for (int i = 0; i < out.size(); i++) {
+//			printf("%f %d\n", out[i], i);
+//			assert(out[i] == i + 1);
+//		}
+//		assert(fifo.availableToConsume() == 4);
+//		fifo.consume(4, out.data());
+//		for (int i = 0; i < out.size(); i++) {
+//			printf("%f %d\n", out[i], i);
+//			assert(out[i] == i + 5);
+//		}
+//	}
+//}
 
+float mapf(float inp, float inMin, float inMax, float outMin, float outMax) {
+	float norm = (inp - inMin) / (inMax - inMin);
+	return outMin + norm * (outMax - outMin);
+}
 void mareksVersion() {
-	//	flite_text_To_speech(, , "none");
-	const char *text =
-		//"Nettie, so sweaty, but she makes it look confetti-ready";
-		//	"I met Nettie on a summer's day, her shine could light the Milky Way, but oh, the heat made her sway, dripping down in a misty spray, her glow was real, her charm did stay, even as sweat beads found their way, her laugh, a breeze to cool dismay, a sweaty queen in her own ballet, she said, It’s life, come what may, her spirit bold, her skies not gray, I saw the sweat, not her decay, it told a story, clear as clay, Nettie dances, come what may, sweat is pride in its own array, I stand with Nettie, every day, her warmth melts fears away.";
-		"ahhee'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
-	cst_voice *voice = flite_voice_select(nullptr);
-
-	// cg_make_params in cst_cg.c can set stretch
-	// main synth is in vocoder() in cst_mlsa.c where you can mess with the pitch and the unvoiced and enable disable filter
-	// TODO:
-	// - set sample rate
-	// - move formants
-	cst_utterance *u = new_utterance();
-	utt_set_input_text(u, text);
-
-	utt_init(u, voice);
-
-	utt_synth(u);
-
-	StreamingSynthContext *ctx = prepareForStreamingSynth(u);
-	ctx->pitch				   = 100;
-	ctx->sing				   = 1;
-	ctx->formantShift		   = 0.6;
-	FloatBuffer buff;
-	FloatBuffer outs;
-	buff.resize(ctx->frameSizeSamples);
-	for (int t = 0; t < ctx->params->num_frames; t++) {
-		synthesizeFrame(ctx, t, buff.data());
-		outs.insert(outs.end(), buff.begin(), buff.end());
+	//	fifoTest();
+	if (1) {
+		FestivalSpeechSynth speaky;
+		//		speaky.setSampleRate(48000);
+		speaky.createParams(
+			"ahhee'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!");
+		FloatBuffer buff;
+		FloatBuffer outs;
+		outs.resize(256);
+		printf("%d\n", speaky.getSentenceDurationInSamples());
+		speaky.setPitch(50);
+		//		speaky.setSpeed(1);
+		speaky.setLooping(true);
+		speaky.setFormantShift(-0.5);
+		for (int t = 0; t < speaky.getSentenceDurationInSamples(); t += outs.size()) {
+			speaky.setPitch(mapf(t, 0, speaky.getSentenceDurationInSamples(), 50, 500));
+			speaky.audioOut(outs);
+			buff.insert(buff.end(), outs.begin(), outs.end());
+		}
+		saveWav("out.wav", buff, 1, 48000);
 	}
-	//	// save it to a file
-	//	cst_wave_save_riff(ctx->wave, "out.wav");
-	saveWav("out.wav", outs, 1, ctx->cg_db->sample_rate);
-	disposeStreamingSynthContext(ctx);
-	delete_utterance(u);
+
+	if (0) {
+		//	flite_text_To_speech(, , "none");
+		const char *text =
+			//"Nettie, so sweaty, but she makes it look confetti-ready";
+			//	"I met Nettie on a summer's day, her shine could light the Milky Way, but oh, the heat made her sway, dripping down in a misty spray, her glow was real, her charm did stay, even as sweat beads found their way, her laugh, a breeze to cool dismay, a sweaty queen in her own ballet, she said, It’s life, come what may, her spirit bold, her skies not gray, I saw the sweat, not her decay, it told a story, clear as clay, Nettie dances, come what may, sweat is pride in its own array, I stand with Nettie, every day, her warmth melts fears away.";
+			"ahhee'm a condoor, flying high, Flapping wings across the sky, Got no worries, no, not I, Cause I eat snacks that are old and dry!";
+		cst_voice *voice = flite_voice_select(nullptr);
+
+		// cg_make_params in cst_cg.c can set stretch
+		// main synth is in vocoder() in cst_mlsa.c where you can mess with the pitch and the unvoiced and enable disable filter
+		// TODO:
+		// - set sample rate
+		// - move formants
+		cst_utterance *u = new_utterance();
+		utt_set_input_text(u, text);
+
+		utt_init(u, voice);
+
+		utt_synth(u);
+
+		StreamingSynthContext *ctx = prepareForStreamingSynth(u);
+		ctx->pitch				   = 50;
+		ctx->sing				   = 1;
+		ctx->formantShift		   = 0.6;
+		FloatBuffer buff;
+		FloatBuffer outs;
+		buff.resize(ctx->frameSizeSamples);
+		for (int t = 0; t < ctx->params->num_frames; t++) {
+			ctx->pitch += 0.48; //80 + sin(t * 0.2) * 5.f;
+			ctx->formantShift = 0.6 + (1.4 - 0.6) * (1.f - (t / (float) ctx->params->num_frames));
+			synthesizeFrame(ctx, t, buff.data());
+			outs.insert(outs.end(), buff.begin(), buff.end());
+		}
+		//	// save it to a file
+		//	cst_wave_save_riff(ctx->wave, "out.wav");
+		saveWav("out.wav", outs, 1, ctx->cg_db->sample_rate);
+		disposeStreamingSynthContext(ctx);
+		delete_utterance(u);
+	}
 }
