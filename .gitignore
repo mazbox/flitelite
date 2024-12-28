@@ -12,3 +12,4 @@ include/flite_version.h
 
 cmake-build-*
 cmake-build-*
+.idea
