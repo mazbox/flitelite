@@ -95,19 +95,29 @@ void FestivalSpeechSynth::createParams(const std::string &sentence) {
 	utt_synth(data->u);
 	data->ctx = prepareForStreamingSynth(data->u);
 	setSampleRate(48000);
+
 	synthOut.resize(getInternalFrameSize());
 	upsampled.resize(synthOut.size() * upsampleRatio);
 	data->fifo.resize(8192);
 }
 
+// TODO: not threadsafe!
+int FestivalSpeechSynth::getNumMceps() {
+	return data->ctx->num_mcep;
+}
+void FestivalSpeechSynth::getMceps(double *mceps) {
+	memcpy(mceps, data->ctx->mcep, data->ctx->num_mcep * sizeof(double));
+}
 void FestivalSpeechSynth::setPitch(float pitch) {
 	data->ctx->sing	 = true;
 	data->ctx->pitch = pitch;
 }
 void FestivalSpeechSynth::setFormantShift(float shift) {
 	// 0.6 to 1.4
-	float norm				= shift * 0.5f + 0.5;
-	data->ctx->formantShift = 0.6f + (1.f - 0.6f) * norm;
+	float norm					  = -shift * 0.5f + 0.5;
+	constexpr static float minVal = 0.3f;
+	constexpr static float maxVal = 1.4f;
+	data->ctx->formantShift		  = minVal + (maxVal - minVal) * norm;
 }
 void FestivalSpeechSynth::readNextBufferAndUpsample() {
 	getNextFrame(synthOut);

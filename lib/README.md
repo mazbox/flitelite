@@ -1,3 +1,6 @@
+Marek modified flite to be a bit more flexible with regards to
+changing the pitch, formant, speed and direction in realtime
+--------------------
 
          Flite: a small run-time speech synthesis engine
                       version 2.1-release
@@ -6,17 +9,16 @@
                       http://cmuflite.org
               https://github.com/festvox/flite
 
-
-Flite is an open source small fast run-time text to speech engine.  It
+Flite is an open source small fast run-time text to speech engine. It
 is the latest addition to the suite of free software synthesis tools
 including University of Edinburgh's Festival Speech Synthesis System
 and Carnegie Mellon University's FestVox project, tools, scripts and
-documentation for building synthetic voices.  However, flite itself
+documentation for building synthetic voices. However, flite itself
 does not require either of these systems to compile and run.
 
 The core Flite library was developed by Alan W Black <awb@cs.cmu.edu>
 (mostly in his so-called spare time) while employed in the Language
-Technologies Institute at Carnegie Mellon University.  The name
+Technologies Institute at Carnegie Mellon University. The name
 "flite", originally chosen to mean "festival-lite" is perhaps doubly
 appropriate as a substantial part of design and coding was done over
 30,000ft while awb was travelling, and (usually) isn't in meetings.
@@ -29,46 +31,46 @@ Flite is the answer to the complaint that Festival is too big, too slow,
 and not portable enough.
 
 o Flite is designed for very small devices, such as phones, portables,
-  PDAs, and also for large server machines which need to serve lots of
-  ports.
-  
+PDAs, and also for large server machines which need to serve lots of
+ports.
+
 o Flite is not a replacement for Festival but an alternative run-time
-  engine for voices developed in the FestVox framework where size and
-  speed is crucial.
-  
+engine for voices developed in the FestVox framework where size and
+speed is crucial.
+
 o Flite is all in ANSI C, it contains no C++ or Scheme, thus requires
-  more care in programming, and is harder to customize at run-time.
-  
+more care in programming, and is harder to customize at run-time.
+
 o It is thread safe
 
-o Voices, lexicons and language descriptions can be compiled 
-  (mostly automatically for voices and lexicons) into C representations 
-  from their FestVox formats
-  
+o Voices, lexicons and language descriptions can be compiled
+(mostly automatically for voices and lexicons) into C representations
+from their FestVox formats
+
 o All voices, lexicons and language model data are const and in the
-  text segment (i.e. they may be put in ROM).  As they are linked in
-  at compile time, there is virtually no startup delay.  Voices may
-  also be loaded from a single file (or across an http connection).
-  
-o Although the synthesized output is not exactly the same as the same 
-  voice in Festival they are effectively equivalent.  That is, flite 
-  doesn't sound better or worse than the equivalent voice in festival,
-  just faster, smaller and scalable.
-  
+text segment (i.e. they may be put in ROM). As they are linked in
+at compile time, there is virtually no startup delay. Voices may
+also be loaded from a single file (or across an http connection).
+
+o Although the synthesized output is not exactly the same as the same
+voice in Festival they are effectively equivalent. That is, flite
+doesn't sound better or worse than the equivalent voice in festival,
+just faster, smaller and scalable.
+
 o For standard diphone voices, maximum run time memory
-  requirements are approximately less than twice the memory requirement 
-  for the waveform generated.  For 32bit architectures
-  this effectively means under 1M.
-  
+requirements are approximately less than twice the memory requirement
+for the waveform generated. For 32bit architectures
+this effectively means under 1M.
+
 o The flite program supports, synthesis of individual strings or files
-  (utterance by utterance) to direct audio devices or to waveform files.
-  
+(utterance by utterance) to direct audio devices or to waveform files.
+
 o The flite library offers simple functions suitable for use in specific
-  applications.
-  
+applications.
+
 Flite is distributed with a single 8K diphone voice (derived from the
 cmu_us_kal voice), a pruned lexicon (derived from
-cmulex) and a set of models for US English.  Here are comparisons
+cmulex) and a set of models for US English. Here are comparisons
 with Festival using basically the same 8KHz diphone voice
 
                 Flite    Festival
@@ -77,13 +79,12 @@ with Festival using basically the same 8KHz diphone voice
     lexicon      600K     5M
     diphone      1.8M     2.1M
     runtime      <1M      16-20M
-   
 
 On a 500Mhz PIII, a timing test of the first two chapters of
-"Alice in Wonderland" (doc/alice) was done.  This produces about
-1300 seconds of speech.  With flite it takes 19.128 seconds (about
+"Alice in Wonderland" (doc/alice) was done. This produces about
+1300 seconds of speech. With flite it takes 19.128 seconds (about
 70.6 times faster than real time) with Festival it takes 97 seconds
-(13.4 times faster than real time).  On the ipaq (with the 16KHz diphones)
+(13.4 times faster than real time). On the ipaq (with the 16KHz diphones)
 flite synthesizes 9.79 time faster than real time.
 
 Requirements:
@@ -103,7 +104,7 @@ Requirements:
 Supported platforms:
 --------------------
 
-We have successfully compiled and run on 
+We have successfully compiled and run on
 
     o Various Intel Linux systems (and iPaq Linux), under various versions
       of GCC (2.7.2 to 10.x)
@@ -132,9 +133,9 @@ Previously we supported PalmOS and Windows CE but these seem to be rare
 nowadays so they are no longer actively supported.
 
 Other similar platforms should just work, we have also cross compiled
-on a Linux machine for various ARM and MIPS processors.  However note
+on a Linux machine for various ARM and MIPS processors. However note
 that new byte order architectures may not work directly as there is
-some careful byte order constraints in some structures.  These are
+some careful byte order constraints in some structures. These are
 portable but may require reordering of some fields, contact us if you
 are moving to a new architecture.
 
@@ -150,7 +151,7 @@ New in 2.2 (Oct 2018)
 
     o Better grapheme support (Wilderness Languages) hundreds of new
     languages
-    
+
 New in 2.1 (Oct 2017)
 
     o Improved Indic front end support (thanks to Suresh Bazaj
@@ -253,9 +254,9 @@ New in 1.3-release (October 2005)
     o runs under ix86_64 linux
 
 New in 1.2-release  (February 2003)
-    o A build process for diphone and clunits/ldom voices
-      FestVox voices can be converted (sometimes) automatically
-      
+o A build process for diphone and clunits/ldom voices
+FestVox voices can be converted (sometimes) automatically
+
     o Various bug fixes
     
     o Initial support for Mac OS X (not talking to audio device yet)
@@ -288,8 +289,8 @@ Or
     make get_voices
 
 Configuration should be automatic, but maybe doesn't work in all cases
-especially if you have some new compiler.  You can explicitly set the
-compiler in config/config and add any options you see fit.  Configure
+especially if you have some new compiler. You can explicitly set the
+compiler in config/config and add any options you see fit. Configure
 tries to guess these but it might be unable to guess for cross
 compilation cases Interesting options there are
 
@@ -298,13 +299,14 @@ compilation cases Interesting options there are
     -DCST_AUDIO_NONE     if you don't need/want audio support
 
 There are different sets of voices and languages you can select between
-them (and your own sets if you make config/XXX.lv).  For example
+them (and your own sets if you make config/XXX.lv). For example
 
     ./configure --with-langvox=transtac
 
 Will use the languages and voices defined in config/transtac.lv
 
 ### Cross-compiling to WASI (experimental)
+
 In order to successfully cross-compile to WASI, firstly head over to
 [CraneStation/wasi-sdk](https://github.com/CraneStation/wasi-sdk)
 and install the WASI toolchain.
@@ -334,6 +336,7 @@ CC="/path/to/wasi-sdk/bin/clang --sysroot=/path/to/wasi-sdk/share/sysroot"
 ```
 
 After the configure step is successful, simply run as usual:
+
 ```
 make
 ```
@@ -350,11 +353,11 @@ Usage:
 
 The ./bin/flite binary contains all supported voices and you may
 choose between the voices with the -voice flag and list the supported
-voices with the -lv flag.  Note the kal (diphone) voice is a different
+voices with the -lv flag. Note the kal (diphone) voice is a different
 technology from the others and is much less computationally expensive
-but more robotic.  For each voice additional binaries that contain
+but more robotic. For each voice additional binaries that contain
 only that voice are created in ./bin/flite_FULLVOICENAME,
-e.g. ./bin/flite_cmu_us_awb.  You can also refer to external clustergen
+e.g. ./bin/flite_cmu_us_awb. You can also refer to external clustergen
 .flitevox voice via a pathname argument with -voice (note the pathname
 must contain at least one "/")
 
@@ -368,11 +371,11 @@ wave format often called .WAV).
 
     ./bin/flite doc/alice
 
-Will play the text file doc/alice.  If the first argument contains
+Will play the text file doc/alice. If the first argument contains
 a space it is treated as text otherwise it is treated as a filename.
 If a second argument is given a waveform file is written to it,
-if no argument is given or "play" is given it will attempt to 
-write directly to the audio device (if supported).  if "none"
+if no argument is given or "play" is given it will attempt to
+write directly to the audio device (if supported). if "none"
 is given the audio is simply thrown away (used for benchmarking).
 Explicit options are also available.
 
@@ -390,10 +393,10 @@ that is fixed now).
 An additional set of feature setting options are available, these are
 *debug* options, Voices are represented as sets of feature values (see
 lang/cmu_us_kal/cmu_us_kal.c) and you can override values on the
-command line.  This can stop flite from working if malicious values
+command line. This can stop flite from working if malicious values
 are set and therefor this facility is not intended to be made
-available for standard users.  But these are useful for
-debugging.  Some typical examples are
+available for standard users. But these are useful for
+debugging. Some typical examples are
 
 Use simple concatenation of diphones without prosodic modification
 
@@ -456,25 +459,25 @@ So you've eagerly downloaded flite, compiled it and run it, now you
 are disappointed that it doesn't sound wonderful, sure its fast and
 small but what you really hoped for was the dulcit tones of a deep
 baritone voice that would make you desperately hang on every phrase it
-mellifluously produces.  But instead you get an 8Khz diphone voice that
+mellifluously produces. But instead you get an 8Khz diphone voice that
 sounds like it came from the last millenium.
 
 Well, first, you are right, it is an 8KHz diphone voice from the last
-millenium, and that was actually deliberate.  As we developed flite we
+millenium, and that was actually deliberate. As we developed flite we
 wanted a voice that was stable and that we could directly compare with
-that very same voice in Festival.  Flite is an *engine*.  We want to
+that very same voice in Festival. Flite is an *engine*. We want to
 be able take voices built with the FestVox process and compile them
 for flite, the result should be exactly the same quality (though of
-course trading the size for quality in flite is also an option).  The
+course trading the size for quality in flite is also an option). The
 included voice is just a sample voice that was used in the testing
-process.  
+process.
 
 We expect that often voices will be loaded from external files, and we
 have now set up a voice repository in
 
     http://festvox.org/flite/packed/flite-2.1/voices/*.flitevox
-   
-If you visit there with a browser you can hear the examples.  You can
+
+If you visit there with a browser you can hear the examples. You can
 also download the .flitevox files to you machine so you don't need a
 network connect everytime you need to load a voice.
 
@@ -485,8 +488,8 @@ Bard Storyteller:  https://github.com/festvox/bard
 --------------------------------------------------
 
 Bard is a companion app that reads ebooks, both displaying them and
-actually reading them to you out loud using flite.  Bard supports a
+actually reading them to you out loud using flite. Bard supports a
 wide range of fonts, and flite voices, and books in text, html and
-epub format.  Bard is used as a evaluation of flite's capabilities and
+epub format. Bard is used as a evaluation of flite's capabilities and
 an example of a serious application using flite.
 

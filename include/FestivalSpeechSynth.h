@@ -17,6 +17,10 @@ public:
 	void audioOut(std::vector<float> &outs);
 	void setLooping(bool _looping) { looping = _looping; }
 
+	// TODO: not threadsafe!
+	void getMceps(double *mceps);
+	int getNumMceps();
+
 private:
 	float speed	   = 1;
 	bool backwards = false;

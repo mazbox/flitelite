@@ -1,6 +1,6 @@
 #define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
-
+#include <vector>
 using FloatBuffer = std::vector<float>;
 #include <vector>
 #include <string>

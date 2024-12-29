@@ -255,6 +255,7 @@ static cst_utterance *cg_make_params(cst_utterance *utt) {
 		/* Guarantee duration to be alt least one frame */
 		if (rdur < cg_db->frame_advance) end = start + cg_db->frame_advance;
 		else end = start + rdur;
+//		end = start + cg_db->frame_advance * 5;
 		item_set_float(s, "end", end);
 		mcep_parent = relation_append(mcep_link, s);
 		for (; (num_frames * cg_db->frame_advance) <= end; num_frames++) {

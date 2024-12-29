@@ -46,7 +46,7 @@
 #include "cst_units.h"
 #include "cst_synth.h"
 #include "cst_phoneset.h"
-
+#include "flite_lite_config.h"
 CST_VAL_REGISTER_FUNCPTR(breakfunc,cst_breakfunc)
 
 #ifndef SYNTH_MODULES_DEBUG
@@ -316,35 +316,37 @@ cst_utterance *default_phrasing(cst_utterance *u)
 
 cst_utterance *default_pause_insertion(cst_utterance *u)
 {
-    /* Add initial silences and silence at each phrase break */
-    const char *silence;
-    const cst_item *w;
-    cst_item *p, *s;
-
-    silence = val_string(feat_val(u->features,"silence"));
-
-    /* Insert initial silence */
-    s = relation_head(utt_relation(u,"Segment"));
-    if (s == NULL)
-	s = relation_append(utt_relation(u,"Segment"),NULL);
-    else
-	s = item_prepend(s,NULL);
-    item_set_string(s,"name",silence);
-
-    for (p=relation_head(utt_relation(u,"Phrase")); p; p=item_next(p))
-    {
-	for (w = item_last_daughter(p); w; w=item_prev(w))
-	{
-	    s = path_to_item(w,"R:SylStructure.daughtern.daughtern.R:Segment");
-	    if (s)
-	    {
-		s = item_append(s,NULL);
+	if(DO_SILENCE) {
+		/* Add initial silences and silence at each phrase break */
+		
+		const char *silence;
+		const cst_item *w;
+		cst_item *p, *s;
+		
+		silence = val_string(feat_val(u->features,"silence"));
+		
+		/* Insert initial silence */
+		s = relation_head(utt_relation(u,"Segment"));
+		if (s == NULL)
+			s = relation_append(utt_relation(u,"Segment"),NULL);
+		else
+			s = item_prepend(s,NULL);
 		item_set_string(s,"name",silence);
-		break;
-	    }
+		
+		for (p=relation_head(utt_relation(u,"Phrase")); p; p=item_next(p))
+		{
+			for (w = item_last_daughter(p); w; w=item_prev(w))
+			{
+				s = path_to_item(w,"R:SylStructure.daughtern.daughtern.R:Segment");
+				if (s)
+				{
+					s = item_append(s,NULL);
+					item_set_string(s,"name",silence);
+					break;
+				}
+			}
+		}
 	}
-    }
-
     return u;
 }
 
@@ -424,6 +426,7 @@ cst_utterance *cart_duration(cst_utterance *u)
 	    local_dur_stretch = dur_stretch;
 
 	dur = local_dur_stretch * ((zdur*dur_stat->stddev)+dur_stat->mean);
+		printf("%f\n", dur);
 	DPRINTF(0,("phone %s accent %s stress %s pdur %f stretch %f mean %f std %f dur %f\n",
 		   item_name(s),
 		   ffeature_string(s,"R:SylStructure.parent.accented"),
