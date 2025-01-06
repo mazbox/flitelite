@@ -62,19 +62,35 @@ CST_VAL_REGISTER_FUNCPTR(breakfunc,cst_breakfunc)
 static cst_utterance *tokentosegs(cst_utterance *u);
 
 static const cst_synth_module synth_method_text[] = {
-    { "tokenizer_func", default_tokenization },
-    { "textanalysis_func", default_textanalysis },
-    { "pos_tagger_func", default_pos_tagger },
-    { "phrasing_func", default_phrasing },
-    { "lexical_insertion_func", default_lexical_insertion },
-    { "pause_insertion_func", default_pause_insertion },
-    { "intonation_func", cart_intonation },
-    { "postlex_func", NULL },
-    { "duration_model_func", cart_duration },
-    { "f0_model_func", NULL },
-    { "wave_synth_func", NULL },
-    { "post_synth_hook_func", NULL },
-    { NULL, NULL }
+	{ "tokenizer_func", default_tokenization },
+	{ "textanalysis_func", default_textanalysis },
+	{ "pos_tagger_func", default_pos_tagger },
+	{ "phrasing_func", default_phrasing },
+	{ "lexical_insertion_func", default_lexical_insertion },
+	{ "pause_insertion_func", default_pause_insertion },
+	{ "intonation_func", cart_intonation },
+	{ "postlex_func", NULL },
+	{ "duration_model_func", cart_duration },
+	{ "f0_model_func", NULL },
+	{ "wave_synth_func", NULL },
+	{ "post_synth_hook_func", NULL },
+	{ NULL, NULL }
+};
+
+static const cst_synth_module synth_method_text_nosilence[] = {
+	{ "tokenizer_func", default_tokenization },
+	{ "textanalysis_func", default_textanalysis },
+	{ "pos_tagger_func", default_pos_tagger },
+	{ "phrasing_func", default_phrasing },
+	{ "lexical_insertion_func", default_lexical_insertion },
+	{ "pause_insertion_func", NULL },
+	{ "intonation_func", cart_intonation },
+	{ "postlex_func", NULL },
+	{ "duration_model_func", cart_duration },
+	{ "f0_model_func", NULL },
+	{ "wave_synth_func", NULL },
+	{ "post_synth_hook_func", NULL },
+	{ NULL, NULL }
 };
 
 static const cst_synth_module synth_method_text2segs[] = {
@@ -183,7 +199,7 @@ cst_utterance *utt_init(cst_utterance *u, cst_voice *vox)
 
 cst_utterance *utt_synth(cst_utterance *u)
 {
-    return apply_synth_method(u, synth_method_text);
+	return apply_synth_method(u, u->doSilence?synth_method_text:synth_method_text_nosilence);
 }
 
 cst_utterance *utt_synth_tokens(cst_utterance *u)
@@ -316,9 +332,7 @@ cst_utterance *default_phrasing(cst_utterance *u)
 
 cst_utterance *default_pause_insertion(cst_utterance *u)
 {
-	if(DO_SILENCE) {
 		/* Add initial silences and silence at each phrase break */
-		
 		const char *silence;
 		const cst_item *w;
 		cst_item *p, *s;
@@ -346,7 +360,6 @@ cst_utterance *default_pause_insertion(cst_utterance *u)
 				}
 			}
 		}
-	}
     return u;
 }
 

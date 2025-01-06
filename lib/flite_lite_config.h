@@ -3,4 +3,4 @@
 // disables the actual synth code, so we can set things up
 #define FLITE_LITE_PREPARE_ONLY
 
-#define DO_SILENCE 1
+#define DO_SILENCE 0

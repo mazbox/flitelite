@@ -75,10 +75,10 @@ public:
 		: fifo(64) {}
 };
 
-FliteLite::FliteLite(const std::string &sentence) {
+FliteLite::FliteLite(const std::string &sentence, bool insertSilence) {
 	data		= std::make_unique<FestivalSpeechData>();
 	data->voice = register_cmu_us_slt(nullptr);
-	createParams(sentence);
+	createParams(sentence, insertSilence);
 }
 FliteLite::~FliteLite() {
 	if (data->u != nullptr) {
@@ -89,12 +89,12 @@ FliteLite::~FliteLite() {
 	}
 }
 
-void FliteLite::createParams(const std::string &sentence) {
+void FliteLite::createParams(const std::string &sentence, bool insertSilence) {
 	data->u = new_utterance();
 	utt_set_input_text(data->u, sentence.c_str());
 
 	utt_init(data->u, data->voice);
-
+	data->u->doSilence = insertSilence;
 	utt_synth(data->u);
 	data->ctx = prepareForStreamingSynth(data->u);
 	setSampleRate(48000);

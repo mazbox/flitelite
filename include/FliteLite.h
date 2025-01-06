@@ -6,7 +6,7 @@ class FestivalSpeechData;
 
 class FliteLite {
 public:
-	FliteLite(const std::string &sentence);
+	FliteLite(const std::string &sentence, bool insertSilence = true);
 	virtual ~FliteLite();
 	
 	int getSentenceDurationInSamples() const;
@@ -23,7 +23,7 @@ public:
 
 	static std::vector<double> convertMcepsToSpectrum(const std::vector<double> &mceps);
 private:
-	void createParams(const std::string &sentence);
+	void createParams(const std::string &sentence, bool insertSilence = true);
 	float speed	   = 1;
 	bool backwards = false;
 	void readNextBufferAndUpsample();

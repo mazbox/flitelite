@@ -52,6 +52,7 @@ struct cst_utterance_struct {
     cst_features *ffunctions;
     cst_features *relations;
     cst_alloc_context ctx;
+	int doSilence;
 };
 
 /* Constructor functions */
