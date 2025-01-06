@@ -1,13 +1,13 @@
 #pragma once
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 class FestivalSpeechData;
 
-class FestivalSpeechSynth {
+class FliteLite {
 public:
-	FestivalSpeechSynth();
-	virtual ~FestivalSpeechSynth();
+	FliteLite();
+	virtual ~FliteLite();
 	void createParams(const std::string &sentence);
 	int getSentenceDurationInSamples() const;
 

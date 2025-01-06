@@ -1,4 +1,4 @@
-#include "FestivalSpeechSynth.h"
+#include "FliteLite.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,18 +75,20 @@ public:
 		: fifo(64) {}
 };
 
-FestivalSpeechSynth::FestivalSpeechSynth() {
+FliteLite::FliteLite() {
 	data		= std::make_unique<FestivalSpeechData>();
 	data->voice = register_cmu_us_slt(nullptr);
 }
-FestivalSpeechSynth::~FestivalSpeechSynth() {
+FliteLite::~FliteLite() {
 	if (data->u != nullptr) {
 		delete_utterance(data->u);
 	}
-	disposeStreamingSynthContext(data->ctx);
+	if (data->ctx != nullptr) {
+		disposeStreamingSynthContext(data->ctx);
+	}
 }
 
-void FestivalSpeechSynth::createParams(const std::string &sentence) {
+void FliteLite::createParams(const std::string &sentence) {
 	data->u = new_utterance();
 	utt_set_input_text(data->u, sentence.c_str());
 
@@ -102,24 +104,24 @@ void FestivalSpeechSynth::createParams(const std::string &sentence) {
 }
 
 // TODO: not threadsafe!
-int FestivalSpeechSynth::getNumMceps() {
-	return data->ctx->num_mcep;
+int FliteLite::getNumMceps() {
+	return 25; //data->ctx->num_mcep;
 }
-void FestivalSpeechSynth::getMceps(double *mceps) {
+void FliteLite::getMceps(double *mceps) {
 	memcpy(mceps, data->ctx->mcep, data->ctx->num_mcep * sizeof(double));
 }
-void FestivalSpeechSynth::setPitch(float pitch) {
+void FliteLite::setPitch(float pitch) {
 	data->ctx->sing	 = true;
 	data->ctx->pitch = pitch;
 }
-void FestivalSpeechSynth::setFormantShift(float shift) {
+void FliteLite::setFormantShift(float shift) {
 	// 0.6 to 1.4
 	float norm					  = -shift * 0.5f + 0.5;
 	constexpr static float minVal = 0.3f;
 	constexpr static float maxVal = 1.4f;
 	data->ctx->formantShift		  = minVal + (maxVal - minVal) * norm;
 }
-void FestivalSpeechSynth::readNextBufferAndUpsample() {
+void FliteLite::readNextBufferAndUpsample() {
 	getNextFrame(synthOut);
 	upsampled.resize(synthOut.size() * upsampleRatio);
 	for (int i = 0; i < synthOut.size(); i++) {
@@ -128,7 +130,7 @@ void FestivalSpeechSynth::readNextBufferAndUpsample() {
 		}
 	}
 }
-void FestivalSpeechSynth::audioOut(std::vector<float> &outs) {
+void FliteLite::audioOut(std::vector<float> &outs) {
 	while (data->fifo.availableToConsume() < outs.size()) {
 		readNextBufferAndUpsample();
 		data->fifo.write(upsampled);
@@ -136,14 +138,14 @@ void FestivalSpeechSynth::audioOut(std::vector<float> &outs) {
 	data->fifo.consume(outs.size(), outs.data());
 }
 
-void FestivalSpeechSynth::setSpeed(float sp) {
+void FliteLite::setSpeed(float sp) {
 	backwards = sp < 0;
 	speed	  = std::clamp(std::abs(sp), 0.01f, 10.f);
 }
-int FestivalSpeechSynth::getInternalFrameSize() const {
+int FliteLite::getInternalFrameSize() const {
 	return data->ctx->frameSizeSamples * speed;
 }
-void FestivalSpeechSynth::getNextFrame(std::vector<float> &outs) {
+void FliteLite::getNextFrame(std::vector<float> &outs) {
 	int numFrames = data->ctx->params->num_frames;
 
 	if (currFrame >= numFrames) {
@@ -161,9 +163,9 @@ void FestivalSpeechSynth::getNextFrame(std::vector<float> &outs) {
 	if (looping) currFrame %= numFrames;
 }
 
-int FestivalSpeechSynth::getSentenceDurationInSamples() const {
+int FliteLite::getSentenceDurationInSamples() const {
 	return data->ctx->params->num_frames * getInternalFrameSize() * upsampleRatio;
 }
-void FestivalSpeechSynth::setSampleRate(double sampleRate) {
+void FliteLite::setSampleRate(double sampleRate) {
 	upsampleRatio = std::round(sampleRate / data->ctx->cg_db->sample_rate);
 }

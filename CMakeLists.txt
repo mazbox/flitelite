@@ -49,8 +49,7 @@ add_library(flitelite STATIC
         ./lib/lang/usenglish/us_expand.c
         ./lib/lang/cmu_grapheme_lex/cmu_grapheme_lex.c
         ./lib/lang/cmu_grapheme_lex/grapheme_unitran_tables.c
-        #        ./main/flite_main.cpp
-        ./lib/FestivalSpeechSynth.cpp
+        ./lib/FliteLite.cpp
         ./lib/flite_lang_list.c
         ./lib/flite_voice_list.c
         ./lib/flite_lite_config.h
@@ -124,10 +123,3 @@ add_library(flitelite STATIC
 
 )
 target_include_directories(flitelite PUBLIC include)
-
-# add sources as source group
-#source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})
-
-# Add the executable
-#add_executable(Flite ${SOURCES})
-
