@@ -19,8 +19,9 @@ public:
 
 	// TODO: not threadsafe!
 	void getMceps(double *mceps);
-	int getNumMceps();
+	static int getNumMceps();
 
+	static std::vector<double> convertMcepsToSpectrum(const std::vector<double> &mceps);
 private:
 	float speed	   = 1;
 	bool backwards = false;

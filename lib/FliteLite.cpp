@@ -103,9 +103,36 @@ void FliteLite::createParams(const std::string &sentence) {
 	data->fifo.resize(8192);
 }
 
-// TODO: not threadsafe!
+
+static std::vector<double> idct(const std::vector<double> &dct_coeffs) {
+	size_t N = dct_coeffs.size();
+	std::vector<double> output(N, 0.0);
+
+	// Precompute normalization factors
+	double c0 = std::sqrt(1.0 / N);
+	double cn = std::sqrt(2.0 / N);
+
+	// Compute IDCT
+	for (size_t n = 0; n < N; ++n) {
+		double sum = 0.0;
+
+		for (size_t k = 0; k < N; ++k) {
+			double coeff = (k == 0) ? c0 : cn;
+			sum += coeff * dct_coeffs[k] * std::cos(M_PI * k * (2 * n + 1) / (2.0 * N));
+		}
+
+		output[n] = sum;
+	}
+
+	return output;
+}
+
+std::vector<double> FliteLite::convertMcepsToSpectrum(const std::vector<double> &mceps) {
+	return idct(mceps);
+}
+
 int FliteLite::getNumMceps() {
-	return 25; //data->ctx->num_mcep;
+	return 25;
 }
 void FliteLite::getMceps(double *mceps) {
 	memcpy(mceps, data->ctx->mcep, data->ctx->num_mcep * sizeof(double));
