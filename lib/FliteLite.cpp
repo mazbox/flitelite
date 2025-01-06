@@ -75,9 +75,10 @@ public:
 		: fifo(64) {}
 };
 
-FliteLite::FliteLite() {
+FliteLite::FliteLite(const std::string &sentence) {
 	data		= std::make_unique<FestivalSpeechData>();
 	data->voice = register_cmu_us_slt(nullptr);
+	createParams(sentence);
 }
 FliteLite::~FliteLite() {
 	if (data->u != nullptr) {
