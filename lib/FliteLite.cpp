@@ -104,14 +104,13 @@ void FliteLite::createParams(const std::string &sentence, bool insertSilence) {
 	data->fifo.resize(8192);
 }
 
-
-static std::vector<double> idct(const std::vector<double> &dct_coeffs) {
+static std::vector<float> idct(const std::vector<double> &dct_coeffs) {
 	size_t N = dct_coeffs.size();
-	std::vector<double> output(N, 0.0);
+	std::vector<float> output(N, 0.0);
 
 	// Precompute normalization factors
-	double c0 = std::sqrt(1.0 / N);
-	double cn = std::sqrt(2.0 / N);
+	float c0 = std::sqrt(1.0 / N);
+	float cn = std::sqrt(2.0 / N);
 
 	// Compute IDCT
 	for (size_t n = 0; n < N; ++n) {
@@ -119,7 +118,7 @@ static std::vector<double> idct(const std::vector<double> &dct_coeffs) {
 
 		for (size_t k = 0; k < N; ++k) {
 			double coeff = (k == 0) ? c0 : cn;
-			sum += coeff * dct_coeffs[k] * std::cos(M_PI * k * (2 * n + 1) / (2.0 * N));
+			sum += coeff * dct_coeffs[k] * std::cos(static_cast<float>(M_PI) * k * (2.f * n + 1.f) / (2.f * N));
 		}
 
 		output[n] = sum;
@@ -128,7 +127,7 @@ static std::vector<double> idct(const std::vector<double> &dct_coeffs) {
 	return output;
 }
 
-std::vector<double> FliteLite::convertMcepsToSpectrum(const std::vector<double> &mceps) {
+std::vector<float> FliteLite::convertMcepsToSpectrum(const std::vector<double> &mceps) {
 	return idct(mceps);
 }
 
