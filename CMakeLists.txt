@@ -74,7 +74,7 @@ add_library(flitelite STATIC
         ./lib/utils/cst_val.c
         ./lib/utils/cst_val_const.c
         ./lib/utils/cst_wchar.c
-        ./lib/utils/cst_mmap_posix.c
+        # ./lib/utils/cst_mmap_posix.c
         ./lib/utils/cst_tokenstream.c
         ./lib/utils/cst_endian.c
         ./lib/utils/cst_args.c
