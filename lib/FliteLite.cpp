@@ -1,4 +1,11 @@
 #include "FliteLite.h"
+#include <algorithm>
+#include <stdexcept>
+#include <cmath>
+
+#ifndef M_PI // for windows wtf
+#define M_PI 3.141592653589793238
+#endif
 
 #ifdef __cplusplus
 extern "C" {

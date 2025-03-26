@@ -106,7 +106,7 @@ add_library(flitelite STATIC
         ./lib/audio/au_none.c
         ./lib/audio/au_command.c
         ./lib/audio/au_streaming.c
-        ./lib/audio/auclient.c
+        # ./lib/audio/auclient.c
         ./lib/audio/audio.c
         ./lib/lexicon/cst_lts.c
         ./lib/lexicon/cst_lexicon.c
